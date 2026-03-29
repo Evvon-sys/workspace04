@@ -36,6 +36,8 @@
   --r-biz: #4caf7d;
   --r-team: #9b7fe8;
   --r-admin: #9098b0;
+  --r-bni: #e08a4c;
+  --r-rd: #e05a8a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -762,7 +764,53 @@ html, body {
   to { opacity: 1; transform: translateY(0); }
 }
 .todo-card, .prob-card { animation: fadeIn 0.2s ease both; }
-</style>
+
+/* ── Drag & Drop ── */
+.todo-card { touch-action: pan-y; }
+.todo-card.dragging {
+  opacity: 0.4; transform: scale(0.98);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.todo-card.drag-over { border-color: var(--gold); background: var(--gold-glow); }
+
+/* ── Priority badge ── */
+.pri-badge {
+  font-size: 0.62rem; font-family: 'DM Mono', monospace; font-weight: 700;
+  padding: 0.1rem 0.4rem; border-radius: 4px;
+}
+.pri-badge.高 { background: rgba(224,90,90,0.18); color: var(--red); }
+.pri-badge.中 { background: rgba(201,168,76,0.18); color: var(--gold); }
+.pri-badge.低 { background: rgba(90,98,120,0.25);  color: var(--text3); }
+
+/* ── Done section collapsed ── */
+.done-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; cursor: pointer; margin-bottom: 0.5rem;
+  transition: all 0.2s;
+}
+.done-toggle:hover { border-color: var(--border2); }
+.done-toggle-label { font-size: 0.78rem; color: var(--text3); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.done-toggle-arrow { font-size: 0.7rem; color: var(--text3); transition: transform 0.2s; }
+.done-toggle.open .done-toggle-arrow { transform: rotate(180deg); }
+.done-list { display: none; }
+.done-list.open { display: block; }
+
+/* ── New role chip colors ── */
+.role-chip[data-role="BNI會務"].active  { background: var(--r-bni); }
+.role-chip[data-role="研發工作"].active  { background: var(--r-rd); }
+.meta-chip[data-role="BNI會務"]  { background: var(--r-bni); }
+.meta-chip[data-role="研發工作"] { background: var(--r-rd); }
+.chip-sel.active[data-role="BNI會務"]  { background: var(--r-bni); border-color: var(--r-bni); }
+.chip-sel.active[data-role="研發工作"] { background: var(--r-rd);  border-color: var(--r-rd); }
+.todo-card[data-role="BNI會務"]::before  { background: var(--r-bni); }
+.todo-card[data-role="研發工作"]::before { background: var(--r-rd); }
+
+/* ── Edit button ── */
+.action-btn.edit-btn { color: var(--gold); }
+.action-btn.edit-btn:hover { border-color: rgba(201,168,76,0.4); background: var(--gold-glow); }
+
 </head>
 <body>
 
@@ -813,13 +861,15 @@ html, body {
   </div>
 
   <div class="form-group">
-    <label class="form-label">身份 / 角色</label>
+    <label class="form-label">身份 / 類別</label>
     <div class="chip-group" id="roleChips">
       <div class="chip-sel active" data-role="老闆決策">老闆決策</div>
       <div class="chip-sel" data-role="專案顧問">專案顧問</div>
       <div class="chip-sel" data-role="業務開發">業務開發</div>
       <div class="chip-sel" data-role="團隊管理">團隊管理</div>
       <div class="chip-sel" data-role="行政財務">行政財務</div>
+      <div class="chip-sel" data-role="BNI會務">BNI會務</div>
+      <div class="chip-sel" data-role="研發工作">研發工作</div>
     </div>
   </div>
 
@@ -843,6 +893,15 @@ html, body {
   <div class="form-group">
     <label class="form-label">截止日期</label>
     <input type="date" class="form-input" id="td_due">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">優先等級</label>
+    <div class="chip-group" id="priChips">
+      <div class="chip-sel" data-pri="高">高</div>
+      <div class="chip-sel active" data-pri="中">中</div>
+      <div class="chip-sel" data-pri="低">低</div>
+    </div>
   </div>
 
   <div class="form-group">
@@ -999,16 +1058,27 @@ html, body {
 // ═══════════════════════════════════════
 let todos    = [];
 let problems = [];
-let scriptUrl  = localStorage.getItem('cmd_script_url') || '';
-let currentTab = 'todo';
-let activeRole = 'all';
-let probLinkActive = false;
+let scriptUrl   = localStorage.getItem('cmd_script_url') || '';
+let currentTab  = 'todo';
+let activeRole  = 'all';
+let probLinkActive  = false;
 let selectedRole    = '老闆決策';
+let selectedPri     = '中';
 let selectedProbCat = '流程效率';
 let selectedProbPri = '低';
 let selectedPlPri   = '低';
-let assignees = [];
-let isLoading = false;
+let assignees   = [];
+let doneOpen    = false;
+let dragSrcId   = null;
+let editingId   = null;
+
+const ROLES = ['老闆決策','專案顧問','業務開發','團隊管理','行政財務','BNI會務','研發工作'];
+const ROLE_COLORS = {
+  '老闆決策':'var(--r-boss)','專案顧問':'var(--r-project)',
+  '業務開發':'var(--r-biz)','團隊管理':'var(--r-team)',
+  '行政財務':'var(--r-admin)','BNI會務':'var(--r-bni)','研發工作':'var(--r-rd)'
+};
+const PRI_ORDER = {'高':0,'中':1,'低':2};
 
 // ═══════════════════════════════════════
 // INIT
@@ -1019,31 +1089,27 @@ function init() {
   document.getElementById('todayDate').textContent =
     `${d.getMonth()+1}/${d.getDate()} 週${days[d.getDay()]}`;
 
-  setupChips('roleChips',  (v) => selectedRole    = v, true);
-  setupChips('pbCatChips', (v) => selectedProbCat = v, true);
-  setupChips('pbPriChips', (v) => selectedProbPri = v, true);
-  setupChips('plPriChips', (v) => selectedPlPri   = v, true);
+  setupChips('roleChips',  v => selectedRole    = v, true);
+  setupChips('priChips',   v => selectedPri     = v, true);
+  setupChips('pbCatChips', v => selectedProbCat = v, true);
+  setupChips('pbPriChips', v => selectedProbPri = v, true);
+  setupChips('plPriChips', v => selectedPlPri   = v, true);
   setupAssignInput();
 
-  if (scriptUrl) {
-    loadFromSheet();
-  } else {
-    showNoScriptBanner();
-    render();
-  }
+  if (scriptUrl) loadFromSheet();
+  else showNoScriptBanner();
 }
 
 // ═══════════════════════════════════════
-// GOOGLE SHEET — 讀取
+// SHEET — READ
 // ═══════════════════════════════════════
 function setSyncDot(state) {
   const dot = document.getElementById('syncDot');
-  if (dot) dot.className = 'sync-dot ' + (state || '');
+  if (dot) dot.className = 'sync-dot ' + (state||'');
 }
 
 function showNoScriptBanner() {
-  const area = document.getElementById('mainArea');
-  area.innerHTML = `
+  document.getElementById('mainArea').innerHTML = `
     <div style="text-align:center;padding:3rem 1.5rem;color:var(--text2)">
       <div style="font-size:2rem;margin-bottom:1rem;opacity:0.4">⚙</div>
       <div style="font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:0.5rem">尚未設定 Google Sheet 連結</div>
@@ -1055,57 +1121,47 @@ function showNoScriptBanner() {
 async function loadFromSheet() {
   if (!scriptUrl) return;
   setSyncDot('syncing');
-  isLoading = true;
-
-  const area = document.getElementById('mainArea');
-  area.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-size:0.85rem">從 Google Sheet 載入中…</div>`;
-
+  document.getElementById('mainArea').innerHTML =
+    `<div style="text-align:center;padding:3rem;color:var(--text3);font-size:0.85rem">從 Google Sheet 載入中…</div>`;
   try {
-    const res  = await fetch(scriptUrl + '?action=load', { cache: 'no-store' });
+    const res  = await fetch(scriptUrl + '?action=load', { cache:'no-store' });
     const data = await res.json();
-
     if (data.ok) {
       todos    = data.todos    || [];
       problems = data.problems || [];
       setSyncDot('ok');
       setTimeout(() => setSyncDot(''), 3000);
-    } else {
-      throw new Error(data.msg || 'load failed');
-    }
+    } else throw new Error(data.msg);
   } catch(e) {
     setSyncDot('err');
-    area.innerHTML = `
+    document.getElementById('mainArea').innerHTML = `
       <div style="text-align:center;padding:3rem 1.5rem;color:var(--text2)">
         <div style="font-size:1.8rem;margin-bottom:0.8rem;opacity:0.4">⚠</div>
         <div style="font-size:0.88rem;color:var(--red);margin-bottom:0.8rem">無法連線到 Google Sheet</div>
-        <div style="font-size:0.78rem;line-height:1.8;margin-bottom:1.2rem">請確認 Apps Script 已重新部署，且存取權設為「所有人」</div>
+        <div style="font-size:0.78rem;line-height:1.8;margin-bottom:1.2rem">請確認 Apps Script 已部署，且存取權設為「所有人」</div>
         <button onclick="loadFromSheet()" style="padding:0.6rem 1.4rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border2);border-radius:8px;font-size:0.85rem;cursor:pointer;font-family:inherit">↻ 重試</button>
       </div>`;
     return;
   }
-
-  isLoading = false;
   render();
 }
 
-// ── 寫入 Sheet（GET + JSONP-like image ping）──
+// ── WRITE ──
 function sheetWrite(params) {
   if (!scriptUrl) return;
   setSyncDot('syncing');
-  const qs  = new URLSearchParams(params).toString();
   const img = new Image();
-  img.onload = img.onerror = () => {
-    setSyncDot('ok');
-    setTimeout(() => setSyncDot(''), 2000);
-  };
-  img.src = scriptUrl + '?' + qs;
+  img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
+  img.src = scriptUrl + '?' + new URLSearchParams(params).toString();
 }
 
 function syncUpsertTodo(t) {
   sheetWrite({ action:'upsert', type:'todo',
     id:t.id, title:t.title, role:t.role, assign:t.assign||'',
     due:t.due||'', project:t.project||'', note:t.note||'',
-    status:t.status, hasProb:String(!!t.hasProb), created:t.created||'' });
+    status:t.status, hasProb:String(!!t.hasProb),
+    priority:t.priority||'中', sortOrder:String(t.sortOrder||0),
+    created:t.created||'' });
 }
 function syncUpsertProb(p) {
   sheetWrite({ action:'upsert', type:'problem',
@@ -1114,27 +1170,24 @@ function syncUpsertProb(p) {
     trigger:p.trigger||'', detail:p.detail||'',
     fromTodo:String(!!p.fromTodo), created:p.created||'' });
 }
-function syncDeleteTodo(id)  { sheetWrite({ action:'delete', type:'todo',    id }); }
-function syncDeleteProb(id)  { sheetWrite({ action:'delete', type:'problem', id }); }
+function syncDeleteTodo(id) { sheetWrite({ action:'delete', type:'todo',    id }); }
+function syncDeleteProb(id) { sheetWrite({ action:'delete', type:'problem', id }); }
 
 // ═══════════════════════════════════════
-// ASSIGN TAG INPUT
+// ASSIGN INPUT
 // ═══════════════════════════════════════
 function setupAssignInput() {
   const input = document.getElementById('td_assign_input');
   if (!input) return;
-  input.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
-      e.preventDefault();
-      addAssignee(input.value.trim());
-      input.value = '';
+  input.addEventListener('keydown', e => {
+    if ((e.key==='Enter'||e.key===',') && input.value.trim()) {
+      e.preventDefault(); addAssignee(input.value.trim()); input.value='';
     }
-    if (e.key === 'Backspace' && input.value === '' && assignees.length > 0) {
-      removeAssignee(assignees[assignees.length - 1]);
-    }
+    if (e.key==='Backspace' && input.value==='' && assignees.length>0)
+      removeAssignee(assignees[assignees.length-1]);
   });
   input.addEventListener('blur', () => {
-    if (input.value.trim()) { addAssignee(input.value.trim()); input.value = ''; }
+    if (input.value.trim()) { addAssignee(input.value.trim()); input.value=''; }
   });
 }
 function quickAssign(name) { addAssignee(name); }
@@ -1142,7 +1195,7 @@ function addAssignee(name) {
   if (!assignees.includes(name)) { assignees.push(name); renderAssignTags(); }
 }
 function removeAssignee(name) {
-  assignees = assignees.filter(a => a !== name); renderAssignTags();
+  assignees = assignees.filter(a=>a!==name); renderAssignTags();
 }
 function renderAssignTags() {
   const c = document.getElementById('assignTags');
@@ -1154,28 +1207,36 @@ function renderAssignTags() {
     chip.classList.toggle('used', assignees.includes(chip.textContent.trim()))
   );
 }
-function resetAssignees() {
-  assignees = []; renderAssignTags();
+function resetAssignees(names) {
+  assignees = names ? names.split('、').filter(Boolean) : [];
+  renderAssignTags();
   const i = document.getElementById('td_assign_input');
-  if (i) i.value = '';
+  if (i) i.value='';
 }
 
 // ═══════════════════════════════════════
 // CHIP SETUP
 // ═══════════════════════════════════════
-function setupChips(containerId, onChange, single = true) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.querySelectorAll('.chip-sel').forEach(chip => {
+function setupChips(cid, onChange, single=true) {
+  const c = document.getElementById(cid);
+  if (!c) return;
+  c.querySelectorAll('.chip-sel').forEach(chip => {
     chip.addEventListener('click', () => {
       if (single) {
-        container.querySelectorAll('.chip-sel').forEach(c => c.classList.remove('active'));
+        c.querySelectorAll('.chip-sel').forEach(x => x.classList.remove('active'));
         chip.classList.add('active');
-        onChange(chip.dataset.role || chip.dataset.p || chip.dataset.cat);
-      } else {
-        chip.classList.toggle('active');
-      }
+        onChange(chip.dataset.role || chip.dataset.pri || chip.dataset.p || chip.dataset.cat);
+      } else chip.classList.toggle('active');
     });
+  });
+}
+
+function setChipActive(cid, val) {
+  const c = document.getElementById(cid);
+  if (!c) return;
+  c.querySelectorAll('.chip-sel').forEach(chip => {
+    const v = chip.dataset.role||chip.dataset.pri||chip.dataset.p||chip.dataset.cat;
+    chip.classList.toggle('active', v===val);
   });
 }
 
@@ -1184,9 +1245,9 @@ function setupChips(containerId, onChange, single = true) {
 // ═══════════════════════════════════════
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.getElementById('fabTodo').style.display = tab === 'todo' ? '' : 'none';
-  document.getElementById('fabProb').style.display = tab === 'problems' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('fabTodo').style.display = tab==='todo'?'':'none';
+  document.getElementById('fabProb').style.display = tab==='problems'?'':'none';
   render();
 }
 
@@ -1195,22 +1256,31 @@ function switchTab(tab) {
 // ═══════════════════════════════════════
 function render() {
   const area = document.getElementById('mainArea');
-  if (currentTab === 'todo') renderTodos(area);
+  if (currentTab==='todo') renderTodos(area);
   else renderProblems(area);
   updateBadges();
 }
 
 function updateBadges() {
-  const active = todos.filter(t => t.status !== '完成').length;
-  document.getElementById('todoBadge').textContent = active;
+  document.getElementById('todoBadge').textContent = todos.filter(t=>t.status!=='完成').length;
   document.getElementById('probBadge').textContent = problems.length;
 }
 
 function renderTodos(area) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const total      = todos.filter(t => t.status !== '完成').length;
-  const inProgress = todos.filter(t => t.status === '進行中').length;
-  const withProbs  = todos.filter(t => t.hasProb).length;
+  const total      = todos.filter(t=>t.status!=='完成').length;
+  const inProgress = todos.filter(t=>t.status==='進行中').length;
+  const withProbs  = todos.filter(t=>t.hasProb).length;
+
+  const filtered = activeRole==='all' ? todos : todos.filter(t=>t.role===activeRole);
+
+  // Sort active: by priority then sortOrder
+  const active = filtered.filter(t=>t.status!=='完成')
+    .sort((a,b) => {
+      const pd = (PRI_ORDER[a.priority]||1) - (PRI_ORDER[b.priority]||1);
+      return pd !== 0 ? pd : (a.sortOrder||0) - (b.sortOrder||0);
+    });
+  const done   = filtered.filter(t=>t.status==='完成');
 
   let html = `
     <div class="stats-bar">
@@ -1219,134 +1289,180 @@ function renderTodos(area) {
       <div class="stat-box"><div class="stat-num red">${withProbs}</div><div class="stat-label">有問題</div></div>
     </div>
     <div class="role-filter">
-      <button class="role-chip ${activeRole==='all'?'active':''}" data-role="all" onclick="filterRole('all')">全部</button>
-      <button class="role-chip ${activeRole==='老闆決策'?'active':''}" data-role="老闆決策" onclick="filterRole('老闆決策')">老闆決策</button>
-      <button class="role-chip ${activeRole==='專案顧問'?'active':''}" data-role="專案顧問" onclick="filterRole('專案顧問')">專案顧問</button>
-      <button class="role-chip ${activeRole==='業務開發'?'active':''}" data-role="業務開發" onclick="filterRole('業務開發')">業務開發</button>
-      <button class="role-chip ${activeRole==='團隊管理'?'active':''}" data-role="團隊管理" onclick="filterRole('團隊管理')">團隊管理</button>
-      <button class="role-chip ${activeRole==='行政財務'?'active':''}" data-role="行政財務" onclick="filterRole('行政財務')">行政財務</button>
+      ${['all',...ROLES].map(r => `
+        <button class="role-chip ${activeRole===r?'active':''}" data-role="${r}" onclick="filterRole('${r}')">${r==='all'?'全部':r}</button>
+      `).join('')}
     </div>`;
 
-  const filtered = activeRole === 'all' ? todos : todos.filter(t => t.role === activeRole);
-  const active   = filtered.filter(t => t.status !== '完成');
-  const done     = filtered.filter(t => t.status === '完成');
-
-  if (active.length === 0 && done.length === 0) {
+  if (active.length===0 && done.length===0) {
     html += `<div class="empty"><div class="empty-icon">✦</div><div class="empty-text">沒有待辦事項<br>點下方按鈕新增</div></div>`;
   } else {
-    if (active.length > 0) {
-      html += `<div class="section-head"><span class="section-title">進行中 / 待處理</span><span class="section-count">${active.length} 筆</span></div>`;
-      html += active.map(t => todoCard(t, today)).join('');
+    if (active.length>0) {
+      html += `<div class="section-head"><span class="section-title">待處理 / 進行中</span><span class="section-count">${active.length} 筆</span></div>`;
+      html += `<div id="todoList">` + active.map(t=>todoCard(t,today)).join('') + `</div>`;
     }
-    if (done.length > 0) {
-      html += `<div class="section-head" style="margin-top:1.6rem"><span class="section-title">已完成</span><span class="section-count">${done.length} 筆</span></div>`;
-      html += done.map(t => todoCard(t, today)).join('');
+    if (done.length>0) {
+      html += `
+        <div class="done-toggle ${doneOpen?'open':''}" onclick="toggleDoneSection()">
+          <span class="done-toggle-label">✓ 已完成（${done.length} 筆）</span>
+          <span class="done-toggle-arrow">▼</span>
+        </div>
+        <div class="done-list ${doneOpen?'open':''}">
+          ${done.map(t=>todoCard(t,today)).join('')}
+        </div>`;
     }
   }
   area.innerHTML = html;
+  setupDragDrop();
 }
 
 function todoCard(t, today) {
-  const isDone = t.status === '完成';
+  const isDone = t.status==='完成';
   let dueMeta = '';
   if (t.due) {
-    const dueDate = new Date(t.due); dueDate.setHours(0,0,0,0);
-    const diff = Math.round((dueDate - today) / 86400000);
+    const dd = new Date(t.due); dd.setHours(0,0,0,0);
+    const diff = Math.round((dd-today)/86400000);
     if (!isDone) {
-      if (diff < 0)      dueMeta = `<span class="meta-chip overdue">逾期 ${-diff}天</span>`;
-      else if (diff === 0) dueMeta = `<span class="meta-chip due-soon">今天到期</span>`;
-      else if (diff <= 2)  dueMeta = `<span class="meta-chip due-soon">剩 ${diff} 天</span>`;
-      else                 dueMeta = `<span class="meta-chip">${t.due.slice(5).replace('-','/')}</span>`;
+      if (diff<0)       dueMeta=`<span class="meta-chip overdue">逾期${-diff}天</span>`;
+      else if (diff===0) dueMeta=`<span class="meta-chip due-soon">今天到期</span>`;
+      else if (diff<=2)  dueMeta=`<span class="meta-chip due-soon">剩${diff}天</span>`;
+      else               dueMeta=`<span class="meta-chip">${t.due.slice(5).replace('-','/')}</span>`;
     }
   }
-  return `<div class="todo-card ${isDone?'done':''}" data-role="${t.role}" data-id="${t.id}" onclick="toggleExpand('${t.id}')">
+  const pri = t.priority||'中';
+  return `
+  <div class="todo-card ${isDone?'done':''}" data-role="${t.role}" data-id="${t.id}"
+       draggable="true" onclick="toggleExpand('${t.id}')">
     <div class="todo-top">
       <div class="todo-check" onclick="toggleDone(event,'${t.id}')">${isDone?'✓':''}</div>
       <div class="todo-body">
         <div class="todo-title">${t.title}</div>
         <div class="todo-meta">
           <span class="meta-chip role" data-role="${t.role}">${t.role}</span>
-          ${t.assign && t.assign !== '我自己' ? `<span class="meta-chip">→ ${t.assign}</span>` : ''}
-          ${t.project ? `<span class="meta-chip">◎ ${t.project}</span>` : ''}
+          <span class="pri-badge ${pri}">${pri}</span>
+          ${t.assign&&t.assign!=='我自己'?`<span class="meta-chip">→ ${t.assign}</span>`:''}
+          ${t.project?`<span class="meta-chip">◎ ${t.project}</span>`:''}
           ${dueMeta}
-          ${t.hasProb ? `<span class="meta-chip has-problem">⚠ 有問題</span>` : ''}
+          ${t.hasProb?`<span class="meta-chip has-problem">⚠ 有問題</span>`:''}
         </div>
         <div class="status-row" onclick="event.stopPropagation()">
-          ${['待處理','進行中','完成'].map(s =>
+          ${['待處理','進行中','完成'].map(s=>
             `<button class="status-opt ${t.status===s?'active':''}" data-s="${s}" onclick="setStatus('${t.id}','${s}')">${s}</button>`
           ).join('')}
         </div>
       </div>
     </div>
     <div class="todo-actions">
-      <button class="action-btn" onclick="openDetail(event,'${t.id}')">詳情</button>
-      <button class="action-btn problem-btn ${t.hasProb?'active':''}" onclick="markProblem(event,'${t.id}')">⚠ ${t.hasProb?'已標記問題':'標記問題'}</button>
+      <button class="action-btn edit-btn" onclick="openEditForm(event,'${t.id}')">✎ 編輯</button>
+      <button class="action-btn problem-btn ${t.hasProb?'active':''}" onclick="markProblem(event,'${t.id}')">⚠ ${t.hasProb?'已標記':'標記問題'}</button>
       <button class="action-btn danger" onclick="deleteTodo(event,'${t.id}')">刪除</button>
     </div>
   </div>`;
 }
 
 function renderProblems(area) {
-  if (problems.length === 0) {
-    area.innerHTML = `<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">還沒有問題記錄<br>在待辦事項標記問題，或點下方按鈕</div></div>`;
+  if (problems.length===0) {
+    area.innerHTML=`<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">還沒有問題記錄<br>在待辦標記問題，或點下方按鈕</div></div>`;
     return;
   }
-  const order = {'高':0,'中':1,'低':2};
-  const sorted = [...problems].sort((a,b) => (order[a.priority]||2) - (order[b.priority]||2));
-  let html = `<div class="section-head"><span class="section-title">問題清單</span><span class="section-count">${problems.length} 筆</span></div>`;
-  html += sorted.map(p => `
-    <div class="prob-card" onclick="openProbDetail('${p.id}')">
-      <div class="prob-meta">
-        <span class="priority-chip ${p.priority}">${p.priority}優先</span>
-        <span class="meta-chip">${p.category}</span>
-        <span class="meta-chip">${p.freq||''}</span>
-        ${p.fromTodo ? `<span class="meta-chip" style="color:var(--blue)">↳ 來自待辦</span>` : ''}
-      </div>
-      <div class="prob-title">${p.title}</div>
-      ${p.detail ? `<div class="prob-desc">${p.detail}</div>` : ''}
-    </div>`).join('');
-  area.innerHTML = html;
+  const sorted=[...problems].sort((a,b)=>(PRI_ORDER[a.priority]||2)-(PRI_ORDER[b.priority]||2));
+  area.innerHTML = `<div class="section-head"><span class="section-title">問題清單</span><span class="section-count">${problems.length} 筆</span></div>`
+    + sorted.map(p=>`
+      <div class="prob-card" onclick="openProbDetail('${p.id}')">
+        <div class="prob-meta">
+          <span class="priority-chip ${p.priority}">${p.priority}優先</span>
+          <span class="meta-chip">${p.category}</span>
+          <span class="meta-chip">${p.freq||''}</span>
+          ${p.fromTodo?`<span class="meta-chip" style="color:var(--blue)">↳ 來自待辦</span>`:''}
+        </div>
+        <div class="prob-title">${p.title}</div>
+        ${p.detail?`<div class="prob-desc">${p.detail}</div>`:''}
+      </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════
+function setupDragDrop() {
+  const list = document.getElementById('todoList');
+  if (!list) return;
+  list.querySelectorAll('.todo-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrcId = card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      list.querySelectorAll('.todo-card').forEach(c=>c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      list.querySelectorAll('.todo-card').forEach(c=>c.classList.remove('drag-over'));
+      if (card.dataset.id!==dragSrcId) card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!dragSrcId || card.dataset.id===dragSrcId) return;
+      card.classList.remove('drag-over');
+
+      // Reorder in todos array
+      const srcIdx  = todos.findIndex(t=>t.id===dragSrcId);
+      const destIdx = todos.findIndex(t=>t.id===card.dataset.id);
+      if (srcIdx<0||destIdx<0) return;
+      const [moved] = todos.splice(srcIdx,1);
+      todos.splice(destIdx,0,moved);
+
+      // Update sortOrder
+      todos.forEach((t,i)=>{ t.sortOrder=i; });
+      todos.filter(t=>t.status!=='完成').forEach(t=>syncUpsertTodo(t));
+      render();
+    });
+  });
+}
+
+// ═══════════════════════════════════════
+// DONE SECTION TOGGLE
+// ═══════════════════════════════════════
+function toggleDoneSection() {
+  doneOpen = !doneOpen;
+  document.querySelector('.done-toggle')?.classList.toggle('open', doneOpen);
+  document.querySelector('.done-list')?.classList.toggle('open', doneOpen);
 }
 
 // ═══════════════════════════════════════
 // INTERACTIONS
 // ═══════════════════════════════════════
-function filterRole(role) { activeRole = role; render(); }
-
-function toggleExpand(id) {
-  document.querySelector(`.todo-card[data-id="${id}"]`)?.classList.toggle('expanded');
-}
+function filterRole(role) { activeRole=role; render(); }
+function toggleExpand(id) { document.querySelector(`.todo-card[data-id="${id}"]`)?.classList.toggle('expanded'); }
 
 function toggleDone(e, id) {
   e.stopPropagation();
-  const t = todos.find(x => x.id === id);
+  const t = todos.find(x=>x.id===id);
   if (!t) return;
-  t.status = t.status === '完成' ? '待處理' : '完成';
+  t.status = t.status==='完成'?'待處理':'完成';
   syncUpsertTodo(t); render();
 }
-
 function setStatus(id, status) {
-  const t = todos.find(x => x.id === id);
+  const t = todos.find(x=>x.id===id);
   if (!t) return;
-  t.status = status;
-  syncUpsertTodo(t); render();
+  t.status=status; syncUpsertTodo(t); render();
 }
-
 function markProblem(e, id) {
   e.stopPropagation();
-  const t = todos.find(x => x.id === id);
+  const t = todos.find(x=>x.id===id);
   if (!t) return;
-  if (t.hasProb) { t.hasProb = false; syncUpsertTodo(t); render(); return; }
-  document.getElementById('pb_title').value = '';
-  document.getElementById('pb_trigger').value = `做「${t.title}」時`;
-  document.getElementById('pb_detail').value = '';
-  window._probFromTodoId = t.id;
+  if (t.hasProb) { t.hasProb=false; syncUpsertTodo(t); render(); return; }
+  document.getElementById('pb_title').value='';
+  document.getElementById('pb_trigger').value=`做「${t.title}」時`;
+  document.getElementById('pb_detail').value='';
+  window._probFromTodoId=t.id;
   openDrawer(document.getElementById('probDrawer'));
 }
-
 function deleteTodo(e, id) {
   e.stopPropagation();
-  todos = todos.filter(x => x.id !== id);
+  if (!confirm('確定刪除這筆待辦？')) return;
+  todos=todos.filter(x=>x.id!==id);
   syncDeleteTodo(id); render();
 }
 
@@ -1358,79 +1474,74 @@ function openDrawer(drawer) {
   drawer.classList.add('open');
 }
 function closeDrawer() {
-  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('open'));
   document.getElementById('overlay').classList.remove('open');
-  probLinkActive = false;
-  window._probFromTodoId = null;
+  probLinkActive=false; window._probFromTodoId=null; editingId=null;
 }
 
 function openTodoForm() {
-  document.getElementById('todoDrawerTitle').textContent = '新增待辦事項';
-  document.getElementById('td_title').value = '';
+  editingId=null;
+  document.getElementById('todoDrawerTitle').textContent='新增待辦事項';
+  document.getElementById('td_title').value='';
   resetAssignees();
-  document.getElementById('td_due').value = '';
-  document.getElementById('td_project').value = '';
-  document.getElementById('td_note').value = '';
+  document.getElementById('td_due').value='';
+  document.getElementById('td_project').value='';
+  document.getElementById('td_note').value='';
   document.getElementById('probLinkToggle').classList.remove('active');
-  document.getElementById('probLinkForm').style.display = 'none';
-  probLinkActive = false;
-  document.getElementById('roleChips').querySelectorAll('.chip-sel').forEach((c,i) => c.classList.toggle('active', i===0));
-  selectedRole = '老闆決策';
+  document.getElementById('probLinkForm').style.display='none';
+  probLinkActive=false;
+  setChipActive('roleChips','老闆決策'); selectedRole='老闆決策';
+  setChipActive('priChips','中'); selectedPri='中';
   openDrawer(document.getElementById('todoDrawer'));
-  setTimeout(() => document.getElementById('td_title').focus(), 350);
+  setTimeout(()=>document.getElementById('td_title').focus(),350);
+}
+
+function openEditForm(e, id) {
+  e.stopPropagation();
+  const t = todos.find(x=>x.id===id);
+  if (!t) return;
+  editingId=id;
+  document.getElementById('todoDrawerTitle').textContent='編輯待辦事項';
+  document.getElementById('td_title').value=t.title;
+  resetAssignees(t.assign!=='我自己'?t.assign:'');
+  document.getElementById('td_due').value=t.due||'';
+  document.getElementById('td_project').value=t.project||'';
+  document.getElementById('td_note').value=t.note||'';
+  document.getElementById('probLinkToggle').classList.remove('active');
+  document.getElementById('probLinkForm').style.display='none';
+  probLinkActive=false;
+  setChipActive('roleChips', t.role||'老闆決策'); selectedRole=t.role||'老闆決策';
+  setChipActive('priChips',  t.priority||'中');   selectedPri=t.priority||'中';
+  openDrawer(document.getElementById('todoDrawer'));
+  setTimeout(()=>document.getElementById('td_title').focus(),350);
 }
 
 function openProbForm() {
-  window._probFromTodoId = null;
-  document.getElementById('pb_title').value = '';
-  document.getElementById('pb_trigger').value = '';
-  document.getElementById('pb_detail').value = '';
-  document.getElementById('pb_freq').value = '每天';
-  document.getElementById('pbCatChips').querySelectorAll('.chip-sel').forEach((c,i) => c.classList.toggle('active', i===0));
-  document.getElementById('pbPriChips').querySelectorAll('.chip-sel').forEach((c,i) => c.classList.toggle('active', i===0));
-  selectedProbCat = '流程效率';
-  selectedProbPri = '低';
+  window._probFromTodoId=null;
+  ['pb_title','pb_trigger','pb_detail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pb_freq').value='每天';
+  setChipActive('pbCatChips','流程效率'); selectedProbCat='流程效率';
+  setChipActive('pbPriChips','低');       selectedProbPri='低';
   openDrawer(document.getElementById('probDrawer'));
-  setTimeout(() => document.getElementById('pb_title').focus(), 350);
+  setTimeout(()=>document.getElementById('pb_title').focus(),350);
 }
 
 function toggleProbLink() {
-  probLinkActive = !probLinkActive;
-  document.getElementById('probLinkToggle').classList.toggle('active', probLinkActive);
-  document.getElementById('probLinkForm').style.display = probLinkActive ? 'block' : 'none';
-}
-
-function openDetail(e, id) {
-  e.stopPropagation();
-  const t = todos.find(x => x.id === id);
-  if (!t) return;
-  document.getElementById('detailContent').innerHTML = `
-    <div class="drawer-title">${t.title}</div>
-    <div class="detail-row"><div class="detail-label">身份角色</div><div class="detail-val">${t.role}</div></div>
-    <div class="detail-row"><div class="detail-label">指派給</div><div class="detail-val">${t.assign||'我自己'}</div></div>
-    ${t.due     ? `<div class="detail-row"><div class="detail-label">截止日期</div><div class="detail-val">${t.due}</div></div>`     : ''}
-    ${t.project ? `<div class="detail-row"><div class="detail-label">客戶/專案</div><div class="detail-val">${t.project}</div></div>` : ''}
-    <div class="detail-row"><div class="detail-label">狀態</div><div class="detail-val">${t.status}</div></div>
-    ${t.note    ? `<div class="detail-row"><div class="detail-label">備註</div><div class="detail-val">${t.note}</div></div>`         : ''}
-    ${t.hasProb ? `<div class="detail-row"><div class="detail-label">⚠ 問題</div><div class="detail-val" style="color:var(--red)">已標記有問題待改善</div></div>` : ''}
-    <div class="detail-row"><div class="detail-label">建立時間</div><div class="detail-val">${t.created}</div></div>
-    <div class="drawer-btn-row">
-      <button class="drawer-btn del" onclick="deleteTodo(event,'${t.id}');closeDrawer()">刪除</button>
-      <button class="drawer-btn" onclick="closeDrawer()">關閉</button>
-    </div>`;
-  openDrawer(document.getElementById('detailDrawer'));
+  probLinkActive=!probLinkActive;
+  document.getElementById('probLinkToggle').classList.toggle('active',probLinkActive);
+  document.getElementById('probLinkForm').style.display=probLinkActive?'block':'none';
 }
 
 function openProbDetail(id) {
-  const p = problems.find(x => x.id === id);
+  const p=problems.find(x=>x.id===id);
   if (!p) return;
-  document.getElementById('probDetailContent').innerHTML = `
+  document.getElementById('probDetailContent').innerHTML=`
     <div class="drawer-title">${p.title}</div>
     <div class="detail-row"><div class="detail-label">類別</div><div class="detail-val">${p.category}</div></div>
     <div class="detail-row"><div class="detail-label">優先程度</div><div class="detail-val">${p.priority}優先</div></div>
     <div class="detail-row"><div class="detail-label">發生頻率</div><div class="detail-val">${p.freq}</div></div>
-    ${p.trigger ? `<div class="detail-row"><div class="detail-label">觸發情境</div><div class="detail-val">${p.trigger}</div></div>` : ''}
-    ${p.detail  ? `<div class="detail-row"><div class="detail-label">說明</div><div class="detail-val">${p.detail}</div></div>`     : ''}
+    ${p.trigger?`<div class="detail-row"><div class="detail-label">觸發情境</div><div class="detail-val">${p.trigger}</div></div>`:''}
+    ${p.detail ?`<div class="detail-row"><div class="detail-label">說明</div><div class="detail-val">${p.detail}</div></div>`:''}
     <div class="detail-row"><div class="detail-label">記錄時間</div><div class="detail-val">${p.created}</div></div>
     <div class="drawer-btn-row">
       <button class="drawer-btn del" onclick="deleteProb('${p.id}')">刪除</button>
@@ -1438,9 +1549,9 @@ function openProbDetail(id) {
     </div>`;
   openDrawer(document.getElementById('probDetailDrawer'));
 }
-
 function deleteProb(id) {
-  problems = problems.filter(x => x.id !== id);
+  if (!confirm('確定刪除這筆問題記錄？')) return;
+  problems=problems.filter(x=>x.id!==id);
   syncDeleteProb(id); render(); closeDrawer();
 }
 
@@ -1448,92 +1559,96 @@ function deleteProb(id) {
 // SAVE
 // ═══════════════════════════════════════
 function saveTodo() {
-  const title = document.getElementById('td_title').value.trim();
+  const title=document.getElementById('td_title').value.trim();
   if (!title) { document.getElementById('td_title').focus(); return; }
-  const now = new Date().toLocaleString('zh-TW');
-  const todo = {
-    id: Date.now().toString(), title, role: selectedRole,
-    assign: assignees.length > 0 ? assignees.join('、') : '我自己',
-    due: document.getElementById('td_due').value,
-    project: document.getElementById('td_project').value.trim(),
-    note: document.getElementById('td_note').value.trim(),
-    status: '待處理',
-    hasProb: probLinkActive && document.getElementById('pl_title').value.trim() !== '',
-    created: now
+  const now=new Date().toLocaleString('zh-TW');
+
+  if (editingId) {
+    // UPDATE existing
+    const t=todos.find(x=>x.id===editingId);
+    if (t) {
+      t.title   = title;
+      t.role    = selectedRole;
+      t.priority= selectedPri;
+      t.assign  = assignees.length>0?assignees.join('、'):'我自己';
+      t.due     = document.getElementById('td_due').value;
+      t.project = document.getElementById('td_project').value.trim();
+      t.note    = document.getElementById('td_note').value.trim();
+      syncUpsertTodo(t);
+    }
+    closeDrawer(); render(); return;
+  }
+
+  // NEW
+  const todo={
+    id:Date.now().toString(), title, role:selectedRole, priority:selectedPri,
+    assign:assignees.length>0?assignees.join('、'):'我自己',
+    due:document.getElementById('td_due').value,
+    project:document.getElementById('td_project').value.trim(),
+    note:document.getElementById('td_note').value.trim(),
+    status:'待處理', hasProb:false,
+    sortOrder:todos.length, created:now
   };
   todos.unshift(todo);
   syncUpsertTodo(todo);
 
   if (probLinkActive) {
-    const plTitle = document.getElementById('pl_title').value.trim();
+    const plTitle=document.getElementById('pl_title').value.trim();
     if (plTitle) {
-      const prob = {
-        id: (Date.now()+1).toString(), title: plTitle,
-        category: '流程效率', priority: selectedPlPri, freq: '偶爾',
-        trigger: `做「${title}」時`,
-        detail: document.getElementById('pl_pain').value.trim(),
-        fromTodo: true, created: now
+      const prob={
+        id:(Date.now()+1).toString(), title:plTitle,
+        category:'流程效率', priority:selectedPlPri, freq:'偶爾',
+        trigger:`做「${title}」時`,
+        detail:document.getElementById('pl_pain').value.trim(),
+        fromTodo:true, created:now
       };
-      problems.unshift(prob);
-      syncUpsertProb(prob);
+      problems.unshift(prob); syncUpsertProb(prob);
     }
   }
   closeDrawer(); render();
 }
 
 function saveProb() {
-  const title = document.getElementById('pb_title').value.trim();
+  const title=document.getElementById('pb_title').value.trim();
   if (!title) { document.getElementById('pb_title').focus(); return; }
-  const fromId = window._probFromTodoId;
-  const prob = {
-    id: Date.now().toString(), title,
-    category: selectedProbCat, priority: selectedProbPri,
-    freq: document.getElementById('pb_freq').value,
-    trigger: document.getElementById('pb_trigger').value.trim(),
-    detail: document.getElementById('pb_detail').value.trim(),
-    fromTodo: !!fromId, created: new Date().toLocaleString('zh-TW')
+  const fromId=window._probFromTodoId;
+  const prob={
+    id:Date.now().toString(), title,
+    category:selectedProbCat, priority:selectedProbPri,
+    freq:document.getElementById('pb_freq').value,
+    trigger:document.getElementById('pb_trigger').value.trim(),
+    detail:document.getElementById('pb_detail').value.trim(),
+    fromTodo:!!fromId, created:new Date().toLocaleString('zh-TW')
   };
-  if (fromId) {
-    const t = todos.find(x => x.id === fromId);
-    if (t) { t.hasProb = true; syncUpsertTodo(t); }
-  }
-  problems.unshift(prob);
-  syncUpsertProb(prob); closeDrawer(); render();
+  if (fromId) { const t=todos.find(x=>x.id===fromId); if(t){t.hasProb=true;syncUpsertTodo(t);} }
+  problems.unshift(prob); syncUpsertProb(prob); closeDrawer(); render();
 }
 
 // ═══════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════
 function openSettings() {
-  document.getElementById('set_scriptUrl').value = scriptUrl;
-  document.getElementById('testStatus').className = 'settings-status';
+  document.getElementById('set_scriptUrl').value=scriptUrl;
+  document.getElementById('testStatus').className='settings-status';
   openDrawer(document.getElementById('settingsDrawer'));
 }
-
 function saveSettings() {
-  const val = document.getElementById('set_scriptUrl').value.trim();
-  scriptUrl = val;
-  localStorage.setItem('cmd_script_url', scriptUrl);
+  const val=document.getElementById('set_scriptUrl').value.trim();
+  scriptUrl=val; localStorage.setItem('cmd_script_url',scriptUrl);
   closeDrawer();
-  if (scriptUrl) loadFromSheet();
-  else showNoScriptBanner();
+  if (scriptUrl) loadFromSheet(); else showNoScriptBanner();
 }
-
 function testConnection() {
-  const url = document.getElementById('set_scriptUrl').value.trim();
-  const st  = document.getElementById('testStatus');
-  if (!url) { st.textContent = '請先填入網址'; st.className = 'settings-status err'; return; }
-  if (!url.startsWith('https://script.google.com') || !url.endsWith('/exec')) {
-    st.textContent = '✗ 網址結尾必須是 /exec';
-    st.className = 'settings-status err'; return;
+  const url=document.getElementById('set_scriptUrl').value.trim();
+  const st=document.getElementById('testStatus');
+  if (!url) { st.textContent='請先填入網址'; st.className='settings-status err'; return; }
+  if (!url.startsWith('https://script.google.com')||!url.endsWith('/exec')) {
+    st.textContent='✗ 網址結尾必須是 /exec'; st.className='settings-status err'; return;
   }
-  st.innerHTML = '格式正確 ✓ 請點連結確認部署：<br><a href="' + url + '" target="_blank" style="color:var(--gold);text-decoration:underline">→ 在新分頁開啟</a>，顯示「指揮台後台運作中 ✓」即成功';
-  st.className = 'settings-status ok';
+  st.innerHTML='格式正確 ✓ 點連結確認：<br><a href="'+url+'" target="_blank" style="color:var(--gold);text-decoration:underline">→ 在新分頁開啟</a>，顯示「指揮台後台運作中 ✓」即成功';
+  st.className='settings-status ok';
 }
-
-function forceSyncAll() {
-  if (scriptUrl) loadFromSheet();
-}
+function forceSyncAll() { if (scriptUrl) loadFromSheet(); }
 
 init();
 </script>
