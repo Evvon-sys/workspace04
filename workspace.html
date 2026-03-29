@@ -1175,6 +1175,16 @@ function syncUpsertProb(p) {
 function syncDeleteTodo(id) { sheetWrite({ action:'delete', type:'todo',    id }); }
 function syncDeleteProb(id) { sheetWrite({ action:'delete', type:'problem', id }); }
 
+// 批次排序：一次送出所有 ID 和 sortOrder，GAS 端一次更新
+function syncBatchSort() {
+  if (!scriptUrl) return;
+  setSyncDot('syncing');
+  const orders = todos.map(t => t.id + ':' + t.sortOrder).join(',');
+  const img = new Image();
+  img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
+  img.src = scriptUrl + '?' + new URLSearchParams({ action:'batchSort', orders }).toString();
+}
+
 // ═══════════════════════════════════════
 // ASSIGN INPUT
 // ═══════════════════════════════════════
@@ -1415,9 +1425,11 @@ function setupDragDrop() {
       const [moved] = todos.splice(srcIdx,1);
       todos.splice(destIdx,0,moved);
 
-      // Update sortOrder
+      // Update sortOrder numbers
       todos.forEach((t,i)=>{ t.sortOrder=i; });
-      todos.filter(t=>t.status!=='完成').forEach(t=>syncUpsertTodo(t));
+
+      // 一次送出所有順序，不要每筆各送一次
+      syncBatchSort();
       render();
     });
   });
