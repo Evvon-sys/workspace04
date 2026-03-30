@@ -1,1186 +1,1670 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1b5e20">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>SDGs 英文教練</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>指揮台 · 顧問工作室</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="指揮台">
+<meta name="theme-color" content="#0f1117">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #181c27;
+  --surface2: #1f2435;
+  --surface3: #262d40;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --text2: #9098b0;
+  --text3: #5a6278;
+  --gold: #c9a84c;
+  --gold2: #e8c96a;
+  --gold-glow: rgba(201,168,76,0.15);
+  --red: #e05a5a;
+  --green: #4caf7d;
+  --blue: #5a9ee0;
+  --purple: #9b7fe8;
+  --orange: #e08a4c;
 
-    :root {
-      --primary:       #2e7d32;
-      --primary-light: #4caf50;
-      --primary-dark:  #1b5e20;
-      --accent:        #ff6f00;
-      --bg:            #f1f8e9;
-      --card:          #ffffff;
-      --text:          #212121;
-      --muted:         #757575;
-      --red:           #e53935;
-      --orange:        #fb8c00;
-      --green:         #43a047;
-      --blue:          #1e88e5;
-      --radius:        16px;
-      --shadow:        0 2px 14px rgba(0,0,0,0.10);
-      --nav-h:         68px;
-      --fs-base:       16px;
-      --fs-sm:         14px;
-      --fs-xs:         12px;
-      --fs-lg:         18px;
-    }
+  /* Role colors */
+  --r-boss: #c9a84c;
+  --r-project: #5a9ee0;
+  --r-biz: #4caf7d;
+  --r-team: #9b7fe8;
+  --r-admin: #9098b0;
+  --r-bni: #e08a4c;
+  --r-rd: #e05a8a;
+}
 
-    /* 平板以上：放大整體字體與容器 */
-    @media (min-width: 600px) {
-      :root {
-        --fs-base: 18px;
-        --fs-sm:   16px;
-        --fs-xs:   14px;
-        --fs-lg:   20px;
-        --nav-h:   72px;
-      }
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    html { font-size: var(--fs-base); }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      max-width: 640px;
-      margin: 0 auto;
-      min-height: 100vh;
-      padding-bottom: var(--nav-h);
-      overflow-x: hidden;
-      font-size: var(--fs-base);
-    }
+/* ── App Shell ── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+}
 
-    /* ── Header ── */
-    .header {
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-      color: white;
-      padding: 14px 20px 12px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .header h1  { font-size: clamp(17px, 4vw, 22px); font-weight: 700; }
-    .header sub { font-size: clamp(11px, 2.5vw, 14px); opacity: 0.8; display: block; }
+/* ── Header ── */
+.app-header {
+  padding: 1.2rem 1.4rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 50;
+  flex-shrink: 0;
+}
 
-    /* ── Bottom Nav ── */
-    .nav {
-      position: fixed; bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 640px;
-      height: var(--nav-h);
-      background: white;
-      border-top: 1px solid #ddd;
-      display: flex; z-index: 100;
-    }
-    .nav-btn {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 2px;
-      border: none; background: none; cursor: pointer;
-      color: var(--muted); font-size: clamp(10px, 2.5vw, 13px); font-weight: 500;
-      -webkit-tap-highlight-color: transparent;
-      transition: color .2s;
-    }
-    .nav-btn .ico { font-size: clamp(22px, 5vw, 28px); }
-    .nav-btn.active { color: var(--primary); }
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
 
-    /* ── Views ── */
-    .view { display: none; padding: 16px; }
-    .view.active { display: block; }
+.brand {
+  display: flex; align-items: baseline; gap: 0.5rem;
+}
+.brand-mark {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.brand-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
 
-    /* ── Cards ── */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
-    }
-    .card-title { font-size: var(--fs-sm); font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+.header-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
 
-    /* ── Stats ── */
-    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
-    .stat-card { background: white; border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: var(--shadow); }
-    .stat-num  { font-size: clamp(26px, 6vw, 34px); font-weight: 700; color: var(--primary); }
-    .stat-lbl  { font-size: clamp(11px, 2.5vw, 14px); color: var(--muted); margin-top: 2px; }
+/* ── Tab Nav ── */
+.tab-nav {
+  display: flex;
+  gap: 0.2rem;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 3px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  position: relative;
+}
+.tab-btn .tab-badge {
+  background: var(--surface3);
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 6px;
+  min-width: 18px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--surface3);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.tab-btn.active .tab-badge {
+  background: var(--gold);
+  color: var(--bg);
+}
 
-    /* ── Review Banner ── */
-    .review-banner {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      color: white; text-align: center;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
-    }
-    .review-banner .big-num { font-size: clamp(48px, 12vw, 68px); font-weight: 700; line-height: 1; }
-    .review-banner .lbl { font-size: clamp(14px, 3.5vw, 18px); opacity: .9; margin-top: 4px; }
-    .start-btn {
-      background: white; color: var(--primary);
-      border: none; border-radius: 50px;
-      padding: 13px 36px;
-      font-size: clamp(16px, 4vw, 20px); font-weight: 700;
-      margin-top: 16px; cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-    }
+/* ── Main ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem 1.4rem 6rem;
+  -webkit-overflow-scrolling: touch;
+}
 
-    /* ── Flip Card ── */
-    .flip-wrap { perspective: 1000px; height: 290px; margin-bottom: 14px; cursor: pointer; }
-    .flip-inner {
-      position: relative; width: 100%; height: 100%;
-      transition: transform .55s; transform-style: preserve-3d;
-    }
-    .flip-inner.flipped { transform: rotateY(180deg); }
-    .flip-front, .flip-back {
-      position: absolute; width: 100%; height: 100%;
-      backface-visibility: hidden; -webkit-backface-visibility: hidden;
-      background: white; border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .flip-back { transform: rotateY(180deg); justify-content: flex-start; padding-top: 22px; overflow-y: auto; }
+/* ── Role Filter ── */
+.role-filter {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: none;
+}
+.role-filter::-webkit-scrollbar { display: none; }
 
-    .word-big  { font-size: clamp(30px, 8vw, 42px); font-weight: 700; color: var(--primary-dark); text-align: center; }
-    .phonetic  { color: var(--muted); font-size: clamp(15px, 3.5vw, 18px); margin: 8px 0 4px; }
-    .tap-hint  { font-size: clamp(12px, 3vw, 15px); color: var(--muted); margin-top: 18px; }
+.role-chip {
+  flex-shrink: 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  font-size: 0.74rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.role-chip:hover { border-color: var(--gold); color: var(--gold); }
+.role-chip.active {
+  color: var(--bg);
+  border-color: transparent;
+}
+.role-chip[data-role="all"].active { background: var(--text2); }
+.role-chip[data-role="老闆決策"].active { background: var(--r-boss); }
+.role-chip[data-role="專案顧問"].active { background: var(--r-project); }
+.role-chip[data-role="業務開發"].active { background: var(--r-biz); }
+.role-chip[data-role="團隊管理"].active { background: var(--r-team); }
+.role-chip[data-role="行政財務"].active { background: var(--r-admin); }
 
-    .speak-btn {
-      background: var(--primary); color: white;
-      border: none; border-radius: 50px;
-      padding: 9px 22px; font-size: 14px;
-      cursor: pointer; margin-top: 14px;
-    }
+/* ── Section Header ── */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  margin-top: 1.4rem;
+}
+.section-head:first-child { margin-top: 0; }
+.section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.section-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text3);
+}
 
-    .back-zh      { font-size: clamp(20px, 5vw, 26px); font-weight: 700; margin-bottom: 6px; color: var(--primary-dark); align-self: flex-start; }
-    .back-en      { font-size: clamp(13px, 3vw, 16px); color: var(--muted); margin-bottom: 10px; line-height: 1.5; align-self: flex-start; }
-    .back-example {
-      font-size: clamp(13px, 3vw, 16px); background: var(--bg);
-      padding: 10px 14px; border-radius: 10px;
-      width: 100%; line-height: 1.7; font-style: italic;
-    }
-    .back-tag {
-      font-size: 11px; background: var(--primary);
-      color: white; padding: 3px 10px;
-      border-radius: 20px; margin-top: 10px; align-self: flex-start;
-    }
+/* ── Todo Card ── */
+.todo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.todo-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+.todo-card[data-role="老闆決策"]::before { background: var(--r-boss); }
+.todo-card[data-role="專案顧問"]::before { background: var(--r-project); }
+.todo-card[data-role="業務開發"]::before { background: var(--r-biz); }
+.todo-card[data-role="團隊管理"]::before { background: var(--r-team); }
+.todo-card[data-role="行政財務"]::before { background: var(--r-admin); }
 
-    /* ── SRS Buttons ── */
-    .srs-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
-    .srs-btn {
-      border: none; border-radius: 10px;
-      padding: clamp(11px, 3vw, 16px) 4px; font-size: clamp(13px, 3.2vw, 16px); font-weight: 600;
-      cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; gap: 2px;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .srs-1 { background:#ffebee; color:var(--red); }
-    .srs-2 { background:#fff3e0; color:var(--orange); }
-    .srs-3 { background:#e8f5e9; color:var(--green); }
-    .srs-4 { background:#e3f2fd; color:var(--blue); }
-    .srs-interval { font-size: 10px; font-weight: 400; }
+.todo-card:hover { border-color: var(--border2); background: var(--surface2); }
+.todo-card.done { opacity: 0.45; }
+.todo-card.done .todo-title { text-decoration: line-through; color: var(--text3); }
 
-    /* ── Progress ── */
-    .prog-bar  { height: 6px; background: #e0e0e0; border-radius: 3px; margin-bottom: 14px; overflow: hidden; }
-    .prog-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width .35s; }
-    .prog-txt  { font-size: 12px; color: var(--muted); text-align: right; margin-bottom: 4px; }
+.todo-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
 
-    /* ── Scripts ── */
-    .script-card {
-      background: white; border-radius: var(--radius);
-      padding: 16px; box-shadow: var(--shadow);
-      margin-bottom: 12px; cursor: pointer;
-    }
-    .script-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .script-title  { font-size: clamp(15px, 3.8vw, 18px); font-weight: 600; flex: 1; margin-right: 8px; }
-    .type-badge    { font-size: clamp(11px, 2.5vw, 13px); padding: 4px 11px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
-    .t-90s  { background:#e3f2fd; color:#1e88e5; }
-    .t-3min { background:#f3e5f5; color:#8e24aa; }
-    .t-2min { background:#fff8e1; color:#f9a825; }
-    .script-preview { font-size: 13px; color: var(--muted); line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .script-foot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.todo-check {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
+}
+.todo-check:hover { border-color: var(--gold); }
+.todo-card.done .todo-check {
+  background: var(--surface3);
+  border-color: var(--text3);
+  color: var(--text3);
+}
 
-    /* ── Modal ── */
-    .overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.5); z-index: 200;
-    }
-    .overlay.active { display: flex; align-items: flex-end; }
-    .modal {
-      background: white; border-radius: 24px 24px 0 0;
-      width: 100%; max-height: 88vh; overflow-y: auto;
-      padding: 24px;
-    }
-    .modal-hd  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-    .modal-ttl { font-size: clamp(18px, 4.5vw, 22px); font-weight: 700; }
-    .modal-cls { background: none; border: none; font-size: clamp(24px, 6vw, 30px); cursor: pointer; color: var(--muted); padding: 0 4px; }
-    .modal-body { font-size: clamp(15px, 3.8vw, 18px); line-height: 1.9; white-space: pre-wrap; }
-    .modal-acts { display: flex; gap: 10px; margin-top: 20px; }
+.todo-body { flex: 1; min-width: 0; }
 
-    .btn-primary {
-      flex: 1; background: var(--primary); color: white;
-      border: none; border-radius: 50px;
-      padding: 14px; font-size: clamp(15px, 3.8vw, 18px); font-weight: 600; cursor: pointer;
-    }
-    .btn-outline {
-      flex: 1; background: white; color: var(--primary);
-      border: 2px solid var(--primary); border-radius: 50px;
-      padding: 14px; font-size: clamp(15px, 3.8vw, 18px); font-weight: 600; cursor: pointer;
-    }
+.todo-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+  line-height: 1.4;
+}
 
-    /* Timer */
-    .timer-box { text-align: center; margin-top: 18px; padding: 16px; background: var(--bg); border-radius: 12px; }
-    .timer-num { font-size: 52px; font-weight: 700; color: var(--primary); }
-    .timer-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.todo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
 
-    /* ── Tabs ── */
-    .tabs {
-      display: flex; background: white;
-      border-radius: 12px; padding: 4px;
-      box-shadow: var(--shadow); margin-bottom: 14px;
-    }
-    .tab-btn {
-      flex: 1; padding: 9px 4px; border: none; border-radius: 8px;
-      background: none; font-size: clamp(13px, 3.2vw, 16px); font-weight: 500;
-      cursor: pointer; color: var(--muted); transition: all .2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .tab-btn.active { background: var(--primary); color: white; }
+.meta-chip {
+  font-size: 0.68rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 5px;
+  background: var(--surface3);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap;
+}
+.meta-chip.role { color: var(--bg); font-family: 'Noto Sans TC', sans-serif; font-weight: 500; }
+.meta-chip[data-role="老闆決策"] { background: var(--r-boss); }
+.meta-chip[data-role="專案顧問"] { background: var(--r-project); }
+.meta-chip[data-role="業務開發"] { background: var(--r-biz); }
+.meta-chip[data-role="團隊管理"] { background: var(--r-team); }
+.meta-chip[data-role="行政財務"] { background: var(--r-admin); }
 
-    /* ── Forms ── */
-    .form-group { margin-bottom: 14px; }
-    .form-lbl { font-size: clamp(13px, 3vw, 16px); color: var(--muted); margin-bottom: 6px; display: block; }
-    .form-input {
-      width: 100%; padding: 13px 15px;
-      border: 1.5px solid #e0e0e0; border-radius: 10px;
-      font-size: clamp(15px, 3.5vw, 17px); outline: none;
-      transition: border-color .2s; background: white;
-    }
-    .form-input:focus { border-color: var(--primary); }
-    textarea.form-input { min-height: 100px; resize: vertical; }
-    select.form-input { appearance: none; }
-    .btn-submit {
-      width: 100%; background: var(--primary); color: white;
-      border: none; border-radius: 50px;
-      padding: 15px; font-size: clamp(16px, 4vw, 19px); font-weight: 600;
-      cursor: pointer; margin-top: 6px;
-    }
+.meta-chip.has-problem {
+  background: rgba(224,90,90,0.15);
+  color: var(--red);
+  border: 1px solid rgba(224,90,90,0.25);
+}
+.meta-chip.due-soon {
+  background: rgba(224,138,76,0.15);
+  color: var(--orange);
+}
+.meta-chip.overdue {
+  background: rgba(224,90,90,0.15);
+  color: var(--red);
+}
 
-    /* ── Coach Chat ── */
-    .chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 200px); }
-    .chat-msgs { flex: 1; overflow-y: auto; padding-bottom: 12px; }
-    .chat-input-row {
-      display: flex; gap: 8px; background: white;
-      padding: 10px 14px; border-radius: var(--radius); box-shadow: var(--shadow);
-    }
-    .chat-input { flex: 1; border: none; outline: none; font-size: clamp(15px, 3.5vw, 17px); }
-    .chat-send {
-      background: var(--primary); color: white;
-      border: none; border-radius: 50%;
-      width: 40px; height: 40px; font-size: 18px; cursor: pointer;
-    }
+.todo-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.todo-card.expanded .todo-actions {
+  opacity: 1;
+  height: auto;
+}
 
-    .msg { margin-bottom: 10px; display: flex; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 88%; padding: 13px 17px;
-      border-radius: 18px; font-size: clamp(14px, 3.5vw, 17px); line-height: 1.7;
-    }
-    .msg.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
-    .msg.ai   .bubble { background: white; box-shadow: var(--shadow); border-bottom-left-radius: 4px; }
+.action-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.74rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.action-btn:hover { border-color: var(--border2); background: var(--surface3); color: var(--text); }
+.action-btn.danger:hover { border-color: rgba(224,90,90,0.4); color: var(--red); background: rgba(224,90,90,0.08); }
+.action-btn.problem-btn:hover { border-color: rgba(224,90,90,0.4); color: var(--red); background: rgba(224,90,90,0.08); }
+.action-btn.problem-btn.active {
+  border-color: rgba(224,90,90,0.4);
+  color: var(--red);
+  background: rgba(224,90,90,0.08);
+}
 
-    /* Loading dots */
-    .dots { display: flex; gap: 5px; padding: 4px 0; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pop 1.2s infinite; }
-    .dot:nth-child(2) { animation-delay: .2s; }
-    .dot:nth-child(3) { animation-delay: .4s; }
-    @keyframes pop { 0%,80%,100%{transform:scale(.6)} 40%{transform:scale(1)} }
+/* ── Status toggle ── */
+.status-row {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+.status-opt {
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 0.68rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.status-opt.active[data-s="待處理"] { background: rgba(90,98,120,0.3); color: var(--text2); border-color: var(--text3); }
+.status-opt.active[data-s="進行中"] { background: rgba(90,158,224,0.15); color: var(--blue); border-color: rgba(90,158,224,0.4); }
+.status-opt.active[data-s="完成"] { background: rgba(76,175,125,0.15); color: var(--green); border-color: rgba(76,175,125,0.4); }
 
-    /* ── Empty State ── */
-    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
-    .empty .ico { font-size: 52px; margin-bottom: 12px; }
-    .empty p { font-size: 14px; line-height: 1.6; }
+/* ── Empty State ── */
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text3);
+}
+.empty-icon { font-size: 2.2rem; margin-bottom: 0.6rem; opacity: 0.3; }
+.empty-text { font-size: 0.82rem; line-height: 1.8; }
 
-    /* ── Coach Enhancements ── */
-    .save-msg-btn {
-      display: block; margin-top: 10px; width: 100%;
-      background: none; border: 1.5px solid var(--primary);
-      color: var(--primary); border-radius: 20px;
-      padding: 5px 12px; font-size: 12px; cursor: pointer;
-      font-weight: 600;
-    }
-    .paste-toolbar {
-      display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
-    }
-    .quick-btn {
-      background: var(--bg); border: 1.5px solid #ddd;
-      border-radius: 20px; padding: 6px 12px;
-      font-size: 12px; cursor: pointer; color: var(--text);
-      white-space: nowrap; font-weight: 500;
-    }
-    .paste-panel {
-      display: none; background: white; border-radius: 12px;
-      padding: 14px; box-shadow: var(--shadow); margin-bottom: 10px;
-    }
-    .paste-panel.open { display: block; }
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: 1.8rem;
+  right: 50%;
+  transform: translateX(50%);
+  max-width: 680px;
+  width: calc(100% - 2.8rem);
+  display: flex;
+  gap: 0.6rem;
+  z-index: 40;
+  pointer-events: none;
+}
+.fab-btn {
+  pointer-events: all;
+  flex: 1;
+  padding: 0.85rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.85rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.fab-todo {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--bg);
+}
+.fab-todo:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(201,168,76,0.35); }
+.fab-problem {
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  color: var(--text2);
+}
+.fab-problem:hover { border-color: var(--red); color: var(--red); transform: translateY(-2px); }
 
-    /* ── Toast ── */
-    .toast {
-      position: fixed;
-      bottom: calc(var(--nav-h) + 20px);
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #333; color: white;
-      padding: 10px 20px; border-radius: 50px;
-      font-size: 14px; z-index: 500;
-      transition: transform .3s;
-      max-width: 85vw;
-      text-align: center;
-      word-break: keep-all;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-  </style>
+/* ── Problem cards ── */
+.prob-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prob-card:hover { border-color: var(--border2); background: var(--surface2); }
+.prob-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; }
+.prob-title { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 0.3rem; }
+.prob-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.priority-chip {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+.priority-chip.低 { background: rgba(76,175,125,0.15); color: var(--green); }
+.priority-chip.中 { background: rgba(201,168,76,0.15); color: var(--gold); }
+.priority-chip.高 { background: rgba(224,90,90,0.15); color: var(--red); }
+
+/* ── Modal / Drawer ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(4px);
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.drawer {
+  position: fixed;
+  bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 680px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border2);
+  z-index: 101;
+  padding: 0 1.4rem 2rem;
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 92vh; max-height: 92dvh;
+  overflow-y: auto;
+}
+.drawer.open { transform: translateX(-50%) translateY(0); }
+
+.drawer-handle {
+  width: 36px; height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+  margin: 0.75rem auto 1.2rem;
+}
+.drawer-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.4rem;
+  letter-spacing: 0.03em;
+}
+
+/* ── Form elements ── */
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.45rem;
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  resize: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--gold);
+  background: var(--surface3);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text3); }
+.form-textarea { min-height: 80px; line-height: 1.6; }
+.form-select { cursor: pointer; appearance: none; }
+
+.chip-group {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+}
+.chip-sel {
+  padding: 0.32rem 0.8rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  font-size: 0.76rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.16s;
+  white-space: nowrap;
+}
+.chip-sel:hover { border-color: var(--gold); color: var(--gold); }
+.chip-sel.active { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
+.chip-sel.active[data-role="老闆決策"] { background: var(--r-boss); border-color: var(--r-boss); }
+.chip-sel.active[data-role="專案顧問"] { background: var(--r-project); border-color: var(--r-project); }
+.chip-sel.active[data-role="業務開發"] { background: var(--r-biz); border-color: var(--r-biz); }
+.chip-sel.active[data-role="團隊管理"] { background: var(--r-team); border-color: var(--r-team); }
+.chip-sel.active[data-role="行政財務"] { background: var(--r-admin); border-color: var(--r-admin); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
+
+.form-submit {
+  width: 100%;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  margin-top: 0.4rem;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+}
+.form-submit:hover { filter: brightness(1.1); }
+
+.form-divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: 1.2rem 0;
+}
+
+/* ── Problem link in todo form ── */
+.prob-link-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--surface2);
+  border: 1.5px dashed var(--border2);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prob-link-toggle:hover { border-color: rgba(224,90,90,0.4); }
+.prob-link-toggle.active { border-color: rgba(224,90,90,0.4); background: rgba(224,90,90,0.06); }
+.prob-link-icon { font-size: 1rem; }
+.prob-link-text { font-size: 0.82rem; color: var(--text2); }
+.prob-link-toggle.active .prob-link-text { color: var(--red); }
+
+/* ── Stats bar ── */
+.stats-bar {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+.stat-box {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+.stat-num.gold { color: var(--gold); }
+.stat-num.red { color: var(--red); }
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+
+/* ── Detail view ── */
+.detail-row {
+  margin-bottom: 0.9rem;
+}
+.detail-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.25rem;
+}
+.detail-val {
+  font-size: 0.86rem;
+  color: var(--text2);
+  background: var(--surface2);
+  padding: 0.55rem 0.8rem;
+  border-radius: 7px;
+  line-height: 1.55;
+}
+
+.drawer-btn-row {
+  display: flex; gap: 0.6rem; margin-top: 1.2rem;
+}
+.drawer-btn {
+  flex: 1;
+  padding: 0.65rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.82rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.drawer-btn:hover { background: var(--surface3); color: var(--text); }
+.drawer-btn.del:hover { border-color: rgba(224,90,90,0.4); color: var(--red); background: rgba(224,90,90,0.06); }
+
+/* ── Assign tag input ── */
+.assign-box {
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 9px;
+  display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+  cursor: text;
+  transition: border-color 0.2s;
+}
+.assign-box:focus-within { border-color: var(--gold); background: var(--surface3); }
+.assign-input {
+  border: none; background: transparent; outline: none;
+  color: var(--text); font-size: 0.88rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  min-width: 120px; flex: 1;
+  padding: 0.15rem 0.2rem;
+}
+.assign-input::placeholder { color: var(--text3); }
+.assign-tag {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.78rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+.assign-tag-remove {
+  cursor: pointer; color: var(--text3);
+  font-size: 0.7rem; line-height: 1;
+  padding: 0 0.1rem;
+  transition: color 0.15s;
+}
+.assign-tag-remove:hover { color: var(--red); }
+
+/* ── Assign presets ── */
+.assign-presets {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+.preset-chip {
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  font-size: 0.74rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.preset-chip:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+.preset-chip.used  { opacity: 0.35; pointer-events: none; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+/* ── Sync dot ── */
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+  display: inline-block;
+  transition: background 0.3s;
+}
+.sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+.sync-dot.ok      { background: var(--green); }
+.sync-dot.err     { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 0.9rem; padding: 0.2rem;
+  transition: color 0.2s;
+}
+.icon-btn:hover { color: var(--gold); }
+
+/* ── Settings drawer extras ── */
+.settings-info {
+  font-size: 0.78rem; color: var(--text2); line-height: 1.7;
+  background: var(--surface2); border-radius: 8px; padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+.settings-info a { color: var(--gold); text-decoration: none; }
+.settings-status {
+  font-size: 0.75rem; margin-top: 0.5rem; padding: 0.4rem 0.8rem;
+  border-radius: 6px; display: none;
+}
+.settings-status.ok  { display:block; background:rgba(76,175,125,0.15); color:var(--green); }
+.settings-status.err { display:block; background:rgba(224,90,90,0.15); color:var(--red); }
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.todo-card, .prob-card { animation: fadeIn 0.2s ease both; }
+
+/* ── Drag & Drop ── */
+.todo-card { touch-action: pan-y; }
+.todo-card.dragging {
+  opacity: 0.4; transform: scale(0.98);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.todo-card.drag-over { border-color: var(--gold); background: var(--gold-glow); }
+
+/* ── Priority badge ── */
+.pri-badge {
+  font-size: 0.62rem; font-family: 'DM Mono', monospace; font-weight: 700;
+  padding: 0.1rem 0.4rem; border-radius: 4px;
+}
+.pri-badge.高 { background: rgba(224,90,90,0.18); color: var(--red); }
+.pri-badge.中 { background: rgba(201,168,76,0.18); color: var(--gold); }
+.pri-badge.低 { background: rgba(90,98,120,0.25);  color: var(--text3); }
+
+/* ── Done section collapsed ── */
+.done-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; cursor: pointer; margin-bottom: 0.5rem;
+  transition: all 0.2s;
+}
+.done-toggle:hover { border-color: var(--border2); }
+.done-toggle-label { font-size: 0.78rem; color: var(--text3); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.done-toggle-arrow { font-size: 0.7rem; color: var(--text3); transition: transform 0.2s; }
+.done-toggle.open .done-toggle-arrow { transform: rotate(180deg); }
+.done-list { display: none; }
+.done-list.open { display: block; }
+
+/* ── New role chip colors ── */
+.role-chip[data-role="BNI會務"].active  { background: var(--r-bni); }
+.role-chip[data-role="研發工作"].active  { background: var(--r-rd); }
+.meta-chip[data-role="BNI會務"]  { background: var(--r-bni); }
+.meta-chip[data-role="研發工作"] { background: var(--r-rd); }
+.chip-sel.active[data-role="BNI會務"]  { background: var(--r-bni); border-color: var(--r-bni); }
+.chip-sel.active[data-role="研發工作"] { background: var(--r-rd);  border-color: var(--r-rd); }
+.todo-card[data-role="BNI會務"]::before  { background: var(--r-bni); }
+.todo-card[data-role="研發工作"]::before { background: var(--r-rd); }
+
+/* ── Edit button ── */
+.action-btn.edit-btn { color: var(--gold); }
+.action-btn.edit-btn:hover { border-color: rgba(201,168,76,0.4); background: var(--gold-glow); }
+
+</style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <div>
-    <h1>SDGs 英文教練 🌍</h1>
-    <sub>商務演說軍火庫</sub>
-  </div>
-  <span id="streakBadge" style="font-size:26px">🔥</span>
-</div>
-
-<!-- ════════════ HOME ════════════ -->
-<div id="homeView" class="view active">
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-num" id="totalWords">-</div>
-      <div class="stat-lbl">總單字</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="mastered">-</div>
-      <div class="stat-lbl">已精通</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="streak">-</div>
-      <div class="stat-lbl">連續天 🔥</div>
-    </div>
-  </div>
-
-  <div class="review-banner">
-    <div class="big-num" id="todayCount">-</div>
-    <div class="lbl">個學習項目待複習</div>
-    <button class="start-btn" onclick="startReview()">⚔️ 開始今日複習</button>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🏆 今日已複習</div>
-    <span id="todayReviewed" style="font-size:26px;font-weight:700;color:var(--primary)">-</span>
-    <span style="font-size:13px;color:var(--muted)"> 個項目</span>
-  </div>
-
-  <div style="text-align:center;font-size:13px;color:var(--muted);padding:8px 0">
-    💡 每次開口，都是在為地球發聲！
-  </div>
-</div>
-
-<!-- ════════════ REVIEW ════════════ -->
-<div id="reviewView" class="view">
-
-  <div id="rContent" style="display:none">
-    <div class="prog-txt" id="progTxt">0 / 0</div>
-    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-
-    <div class="flip-wrap" id="flipWrap" onclick="flipCard()">
-      <div class="flip-inner" id="flipInner">
-        <!-- FRONT -->
-        <div class="flip-front">
-          <div class="word-big" id="wordMain">-</div>
-          <div class="phonetic" id="wordPhonetic"></div>
-          <button class="speak-btn" onclick="event.stopPropagation();speakCurrent()">🔊 發音</button>
-          <div class="tap-hint">點擊卡片 → 查看意思</div>
-        </div>
-        <!-- BACK -->
-        <div class="flip-back">
-          <div class="back-zh" id="backZh">-</div>
-          <div class="back-en" id="backEn"></div>
-          <div class="back-example" id="backExample"></div>
-          <div class="back-tag" id="backTag"></div>
-          <button class="speak-btn" onclick="event.stopPropagation();speakCurrent()" style="margin-top:14px">🔊 再聽一次</button>
-        </div>
+<div class="app">
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <span class="brand-mark">CMD</span>
+        <span class="brand-name">指揮台</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.7rem">
+        <span class="sync-dot" id="syncDot" title="同步狀態"></span>
+        <span class="header-date" id="todayDate"></span>
+        <button class="icon-btn" onclick="openSettings()" title="設定">⚙</button>
       </div>
     </div>
-
-    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px">這個單字你的掌握程度？</div>
-    <div class="srs-row">
-      <button class="srs-btn srs-1" onclick="scoreCard(1)">😵 不會<span class="srs-interval">明天</span></button>
-      <button class="srs-btn srs-2" onclick="scoreCard(2)">🤔 模糊<span class="srs-interval">3天</span></button>
-      <button class="srs-btn srs-3" onclick="scoreCard(3)">😊 認識<span class="srs-interval">7天</span></button>
-      <button class="srs-btn srs-4" onclick="scoreCard(4)">💪 簡單<span class="srs-interval">14天</span></button>
-    </div>
-  </div>
-
-  <div id="rDone" style="display:none">
-    <div class="card" style="text-align:center;padding:40px 20px">
-      <div style="font-size:64px;margin-bottom:16px">🎉</div>
-      <div style="font-size:22px;font-weight:700;margin-bottom:8px">今日複習完成！</div>
-      <div id="rSummary" style="color:var(--muted);font-size:14px;margin-bottom:20px"></div>
-      <button class="btn-primary" onclick="goHome()">回首頁</button>
-    </div>
-  </div>
-
-  <div id="rEmpty" style="display:none">
-    <div class="empty">
-      <div class="ico">✨</div>
-      <p>今天沒有待複習的項目！<br>好好享受這個成就 😊</p>
-      <button class="btn-primary" style="margin-top:20px;width:auto;padding:12px 32px" onclick="showView('addView',document.getElementById('navAdd'))">＋ 新增單字</button>
-    </div>
-  </div>
-
-</div>
-
-<!-- ════════════ SCRIPTS ════════════ -->
-<div id="scriptsView" class="view">
-  <div class="tabs">
-    <button class="tab-btn active" onclick="filterScripts('all',this)">全部</button>
-    <button class="tab-btn" onclick="filterScripts('90s',this)">90秒</button>
-    <button class="tab-btn" onclick="filterScripts('3min',this)">3分鐘</button>
-    <button class="tab-btn" onclick="filterScripts('2min',this)">2分鐘</button>
-  </div>
-  <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-    <button id="hideDoneBtn" onclick="toggleHideDone()" style="font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid #ccc;background:white;color:var(--muted);cursor:pointer">
-      👁 隱藏已完成
-    </button>
-  </div>
-  <div id="scriptsList"></div>
-</div>
-
-<!-- ════════════ ADD ════════════ -->
-<div id="addView" class="view">
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchAdd('vocab',this)">📚 單字</button>
-    <button class="tab-btn" onclick="switchAdd('phrase',this)">💬 短句</button>
-    <button class="tab-btn" onclick="switchAdd('script',this)">🎯 腳本</button>
-  </div>
-
-  <!-- AI 產出單字 -->
-  <div id="vocabForm">
-    <div class="card" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;margin-bottom:12px">
-      <div style="text-align:center">
-        <div style="font-size:22px;margin-bottom:6px">🌱</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">讓 AI 為你產出今日 7 個 SDGs 核心單字，自動加入複習清單</p>
-        <button class="btn-primary" id="genVocabBtn" onclick="generateVocab()" style="width:100%;font-size:15px;padding:14px">
-          🤖 產出今日 7 個單字
-        </button>
-        <div id="genVocabResult" style="margin-top:12px;font-size:13px;line-height:1.8;display:none;text-align:left"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="form-group">
-        <label class="form-lbl">英文單字 *</label>
-        <input id="vWord" class="form-input" type="text" placeholder="e.g. Collaboration">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">音標</label>
-        <input id="vPhonetic" class="form-input" type="text" placeholder="e.g. /kəˌlæbəˈreɪʃən/">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">中文意思 *</label>
-        <input id="vZh" class="form-input" type="text" placeholder="e.g. 合作、協作">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">英文定義</label>
-        <input id="vEn" class="form-input" type="text" placeholder="e.g. Working jointly to achieve a goal">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">例句</label>
-        <textarea id="vExample" class="form-input" placeholder="e.g. Collaboration is key to achieving the SDGs."></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">SDG 標籤</label>
-        <select id="vTag" class="form-input">
-          <option value="">選擇...</option>
-          <option>SDG1</option><option>SDG2</option><option>SDG3</option>
-          <option>SDG4</option><option>SDG5</option><option>SDG6</option>
-          <option>SDG7</option><option>SDG8</option><option>SDG9</option>
-          <option>SDG10</option><option>SDG11</option><option>SDG12</option>
-          <option>SDG13</option><option>SDG14</option><option>SDG15</option>
-          <option>SDG16</option><option>SDG17</option>
-        </select>
-      </div>
-      <button class="btn-submit" onclick="submitVocab()">✅ 加入單字牆</button>
-    </div>
-  </div>
-  </div>
-
-  <!-- 短句表單 -->
-  <div id="phraseForm" style="display:none">
-    <div class="card">
-      <div class="form-group">
-        <label class="form-lbl">英文短句 *</label>
-        <textarea id="pPhrase" class="form-input" placeholder="e.g. Collaboration across sectors is essential for achieving the 2030 Agenda."></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">使用情境</label>
-        <input id="pContext" class="form-input" type="text" placeholder="e.g. 開場白 / 提案收尾 / 尋求合作">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">中文意思</label>
-        <input id="pZh" class="form-input" type="text" placeholder="e.g. 跨部門合作是實現2030議程的關鍵">
-      </div>
-      <button class="btn-submit" onclick="submitPhrase()">✅ 加入咒語庫</button>
-    </div>
-  </div>
-
-  <!-- 腳本表單 -->
-  <div id="scriptForm" style="display:none">
-    <div class="card">
-      <div class="form-group">
-        <label class="form-lbl">腳本標題 *</label>
-        <input id="sTitle" class="form-input" type="text" placeholder="e.g. 酒會破冰 - SDGs 傳道者">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">類型</label>
-        <select id="sType" class="form-input">
-          <option value="90s">🍸 酒會破冰（90秒）</option>
-          <option value="3min">📊 項目提案（3分鐘）</option>
-          <option value="2min">🤝 尋求支持（2分鐘）</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">腳本內容 *</label>
-        <textarea id="sContent" class="form-input" style="min-height:160px" placeholder="Hi, I'm..."></textarea>
-      </div>
-      <button class="btn-submit" onclick="submitScript()">✅ 加入軍火庫</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════ COACH ════════════ -->
-<div id="coachView" class="view">
-  <div class="chat-wrap">
-    <div class="chat-msgs" id="chatMsgs">
-      <div class="msg ai">
-        <div class="bubble">
-          🌍 你好！我是你的 <strong>SDGs 英文教練</strong>。<br><br>
-          我可以幫你：<br>
-          • 解釋 SDG / ESG 英文單字用法<br>
-          • 幫你潤色演講腳本<br>
-          • 教你地道商務英文表達<br>
-          • 模擬酒會破冰 / 提案場景<br><br>
-          今天想練習什麼？💪
-        </div>
-      </div>
-    </div>
-    <!-- 快速工具列 -->
-    <div class="paste-toolbar">
-      <button class="quick-btn" onclick="togglePastePanel()">📋 貼上腳本分析</button>
-      <button class="quick-btn" onclick="quickPrompt('幫我寫一個90秒酒會破冰腳本，我是SDGs全球傳道者')">🍸 破冰腳本</button>
-      <button class="quick-btn" onclick="quickPrompt('幫我寫一個3分鐘SDGs項目提案腳本，主題是循環經濟')">📊 提案腳本</button>
-    </div>
-    <!-- 貼上分析面板 -->
-    <div class="paste-panel" id="pastePanel">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
-        📋 貼上英文腳本或文字，AI 自動分析詞彙 + 潤色建議
-      </div>
-      <textarea id="pasteInput" class="form-input" style="min-height:100px;margin-bottom:10px"
-        placeholder="Hi, I'm a global SDGs ambassador..."></textarea>
-      <button class="btn-primary" onclick="analyzePaste()" style="padding:10px;font-size:14px">
-        🔍 開始分析
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="todo" onclick="switchTab('todo')">
+        ✦ 待辦事項 <span class="tab-badge" id="todoBadge">0</span>
+      </button>
+      <button class="tab-btn" data-tab="problems" onclick="switchTab('problems')">
+        ◈ 問題記錄 <span class="tab-badge" id="probBadge">0</span>
       </button>
     </div>
-    <div class="chat-input-row">
-      <input id="chatInput" class="chat-input" type="text"
-        placeholder="問教練任何問題..."
-        onkeypress="if(event.key==='Enter')sendChat()">
-      <button class="chat-send" onclick="sendChat()">➤</button>
-    </div>
+  </header>
+
+  <div class="main" id="mainArea">
+    <!-- rendered by JS -->
+  </div>
+
+  <div class="fab">
+    <button class="fab-btn fab-todo" id="fabTodo" onclick="openTodoForm()">＋ 新增待辦</button>
+    <button class="fab-btn fab-problem" id="fabProb" onclick="openProbForm()" style="display:none">◈ 記錄問題</button>
   </div>
 </div>
 
-<!-- ── Bottom Nav ── -->
-<nav class="nav">
-  <button class="nav-btn active" id="navHome"    onclick="goHome()">
-    <span class="ico">🏠</span>首頁
-  </button>
-  <button class="nav-btn" id="navReview"  onclick="startReview()">
-    <span class="ico">📚</span>複習
-  </button>
-  <button class="nav-btn" id="navScripts" onclick="showView('scriptsView',this);loadScripts()">
-    <span class="ico">🎯</span>軍火庫
-  </button>
-  <button class="nav-btn" id="navAdd"     onclick="showView('addView',this)">
-    <span class="ico">➕</span>新增
-  </button>
-  <button class="nav-btn" id="navCoach"   onclick="showView('coachView',this)">
-    <span class="ico">🤖</span>教練
-  </button>
-</nav>
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
-<!-- Script Modal -->
-<div class="overlay" id="scriptOverlay" onclick="maybeClose(event)">
-  <div class="modal">
-    <div class="modal-hd">
-      <div>
-        <div class="modal-ttl" id="mTitle">-</div>
-        <span id="mBadge" class="type-badge">-</span>
+<!-- Todo Form Drawer -->
+<div class="drawer" id="todoDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title" id="todoDrawerTitle">新增待辦事項</div>
+
+  <div class="form-group">
+    <label class="form-label">任務標題 *</label>
+    <input type="text" class="form-input" id="td_title" placeholder="用一句話描述這件事">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">身份 / 類別</label>
+    <div class="chip-group" id="roleChips">
+      <div class="chip-sel active" data-role="老闆決策">老闆決策</div>
+      <div class="chip-sel" data-role="專案顧問">專案顧問</div>
+      <div class="chip-sel" data-role="業務開發">業務開發</div>
+      <div class="chip-sel" data-role="團隊管理">團隊管理</div>
+      <div class="chip-sel" data-role="行政財務">行政財務</div>
+      <div class="chip-sel" data-role="BNI會務">BNI會務</div>
+      <div class="chip-sel" data-role="研發工作">研發工作</div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">指派給 <span style="text-transform:none;letter-spacing:0;font-weight:400">（點名字快速加入，或手動輸入後按 Enter）</span></label>
+    <div class="assign-box" id="assignBox" onclick="document.getElementById('td_assign_input').focus()">
+      <div class="assign-tags" id="assignTags"></div>
+      <input type="text" class="assign-input" id="td_assign_input" placeholder="輸入名字後按 Enter…">
+    </div>
+    <div class="assign-presets" id="assignPresets">
+      <span class="preset-chip" onclick="quickAssign('Evvon')">Evvon</span>
+      <span class="preset-chip" onclick="quickAssign('Vivi')">Vivi</span>
+      <span class="preset-chip" onclick="quickAssign('七七')">七七</span>
+      <span class="preset-chip" onclick="quickAssign('Caren')">Caren</span>
+      <span class="preset-chip" onclick="quickAssign('珮萱')">珮萱</span>
+      <span class="preset-chip" onclick="quickAssign('崇軒')">崇軒</span>
+      <span class="preset-chip" onclick="quickAssign('素英')">素英</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">截止日期</label>
+    <input type="date" class="form-input" id="td_due">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">優先等級</label>
+    <div class="chip-group" id="priChips">
+      <div class="chip-sel" data-pri="高">高</div>
+      <div class="chip-sel active" data-pri="中">中</div>
+      <div class="chip-sel" data-pri="低">低</div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">連結客戶 / 專案</label>
+    <input type="text" class="form-input" id="td_project" placeholder="例：A公司・Q2顧問案">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">備註</label>
+    <textarea class="form-textarea" id="td_note" placeholder="補充說明、參考資料、注意事項…"></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="prob-link-toggle" id="probLinkToggle" onclick="toggleProbLink()">
+      <span class="prob-link-icon">⚠</span>
+      <span class="prob-link-text">這件事做的時候遇到問題 → 同時記錄問題</span>
+    </div>
+  </div>
+
+  <div id="probLinkForm" style="display:none">
+    <div style="border-left: 2px solid rgba(224,90,90,0.3); padding-left: 1rem; margin-bottom: 1rem;">
+      <div class="form-group">
+        <label class="form-label">問題描述</label>
+        <input type="text" class="form-input" id="pl_title" placeholder="遇到什麼問題？">
       </div>
-      <button class="modal-cls" onclick="closeModal()">✕</button>
+      <div class="form-group">
+        <label class="form-label">痛點 / 希望改善</label>
+        <textarea class="form-textarea" id="pl_pain" placeholder="哪個步驟卡住？希望變成什麼樣？" style="min-height:60px"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">優先程度</label>
+        <div class="chip-group" id="plPriChips">
+          <div class="chip-sel active" data-p="低">低</div>
+          <div class="chip-sel" data-p="中">中</div>
+          <div class="chip-sel" data-p="高">高・急</div>
+        </div>
+      </div>
     </div>
-    <div class="modal-body" id="mBody">-</div>
-    <div class="modal-acts">
-      <button class="btn-outline" onclick="speakScript()">🔊 朗讀全文</button>
-      <button class="btn-primary" onclick="practiceScript()">⏱ 計時練習</button>
+  </div>
+
+  <button class="form-submit" onclick="saveTodo()">儲存待辦事項</button>
+</div>
+
+<!-- Problem Form Drawer (standalone) -->
+<div class="drawer" id="probDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">記錄一個問題</div>
+
+  <div class="form-group">
+    <label class="form-label">問題標題 *</label>
+    <input type="text" class="form-input" id="pb_title" placeholder="用一句話描述這個困擾">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">類別</label>
+    <div class="chip-group" id="pbCatChips">
+      <div class="chip-sel active" data-cat="流程效率">流程效率</div>
+      <div class="chip-sel" data-cat="溝通協作">溝通協作</div>
+      <div class="chip-sel" data-cat="文件資料">文件資料</div>
+      <div class="chip-sel" data-cat="時間管理">時間管理</div>
+      <div class="chip-sel" data-cat="客戶管理">客戶管理</div>
+      <div class="chip-sel" data-cat="財務行政">財務行政</div>
     </div>
-    <div id="timerBox" style="display:none" class="timer-box">
-      <div class="timer-num" id="timerNum">0:00</div>
-      <div class="timer-lbl">練習時間</div>
-      <button class="btn-outline" onclick="stopTimer()" style="margin-top:12px;width:auto;padding:8px 24px">停止</button>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">優先程度</label>
+      <div class="chip-group" id="pbPriChips">
+        <div class="chip-sel active" data-p="低">低</div>
+        <div class="chip-sel" data-p="中">中</div>
+        <div class="chip-sel" data-p="高">高</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">發生頻率</label>
+      <select class="form-select" id="pb_freq">
+        <option>每天</option><option>每週數次</option>
+        <option>每週一次</option><option>每月數次</option><option>偶爾</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">觸發情境</label>
+    <textarea class="form-textarea" id="pb_trigger" placeholder="我在做什麼時遇到這個問題？" style="min-height:65px"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">痛點 / 目前作法 / 理想狀態</label>
+    <textarea class="form-textarea" id="pb_detail" placeholder="哪步驟費時費力？現在怎麼土法煉鋼？希望變成什麼樣？"></textarea>
+  </div>
+
+  <button class="form-submit" onclick="saveProb()">記錄這個問題</button>
+</div>
+
+<!-- Todo Detail Drawer -->
+<div class="drawer" id="detailDrawer">
+  <div class="drawer-handle"></div>
+  <div id="detailContent"></div>
+</div>
+
+<!-- Problem Detail Drawer -->
+<div class="drawer" id="probDetailDrawer">
+  <div class="drawer-handle"></div>
+  <div id="probDetailContent"></div>
+</div>
+
+<!-- Settings Drawer -->
+<div class="drawer" id="settingsDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">⚙ 設定</div>
+
+  <div class="form-group">
+    <label class="form-label">Google Sheet 同步網址</label>
+    <div class="settings-info">
+      貼上你的 Apps Script 部署網址。<br>
+      每次新增 / 修改 / 刪除都會自動同步到 Google Sheet。<br>
+      <a href="#" onclick="showScriptSteps(); return false">→ 查看部署步驟</a>
+    </div>
+    <input type="text" class="form-input" id="set_scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" style="font-family:'DM Mono',monospace;font-size:0.75rem">
+    <div class="settings-status" id="testStatus"></div>
+  </div>
+
+  <div style="display:flex;gap:0.6rem;margin-bottom:1rem">
+    <button class="form-submit" style="flex:1" onclick="saveSettings()">儲存</button>
+    <button class="drawer-btn" style="flex:0.5" onclick="testConnection()">測試連線</button>
+  </div>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+
+  <div class="form-group">
+    <label class="form-label">強制全量同步</label>
+    <p style="font-size:0.78rem;color:var(--text2);margin-bottom:0.7rem;line-height:1.6">將本機所有資料重新同步到 Sheet（不會刪除 Sheet 資料，只會覆蓋）</p>
+    <button class="drawer-btn" style="width:100%" onclick="forceSyncAll()">↑ 立即全量同步</button>
+  </div>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+
+  <div class="form-group">
+    <label class="form-label">加到手機桌面（Android）</label>
+    <div class="settings-info">
+      1. Chrome 瀏覽器打開這個頁面<br>
+      2. 右上角選單（三個點）<br>
+      3. 點「新增到主畫面」或「安裝應用程式」<br>
+      4. 確認後桌面就會出現「指揮台」圖示 ✓
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<!-- ════════ JavaScript ════════ -->
 <script>
-// ── State ──────────────────────────
-let reviewQueue = [];
-let reviewIdx   = 0;
-let curItem     = null;
-let isFlipped   = false;
-let allScripts  = [];
-let curScript   = null;
-let timerIv     = null;
-let timerSecs   = 0;
-let scriptFilter = 'all';
-let hideDone    = false;
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let todos    = [];
+let problems = [];
+let scriptUrl   = localStorage.getItem('cmd_script_url') || '';
+let currentTab  = 'todo';
+let activeRole  = 'all';
+let probLinkActive  = false;
+let selectedRole    = '老闆決策';
+let selectedPri     = '中';
+let selectedProbCat = '流程效率';
+let selectedProbPri = '低';
+let selectedPlPri   = '低';
+let assignees   = [];
+let doneOpen    = false;
+let dragSrcId   = null;
+let editingId   = null;
 
-// ── 完成標記（localStorage）────────
-function getDoneSet() {
-  try { return new Set(JSON.parse(localStorage.getItem('doneScripts') || '[]')); }
-  catch(e) { return new Set(); }
-}
-function toggleDone(id) {
-  const done = getDoneSet();
-  if (done.has(id)) done.delete(id); else done.add(id);
-  localStorage.setItem('doneScripts', JSON.stringify([...done]));
-  renderScripts(scriptFilter);
-}
-function toggleHideDone() {
-  hideDone = !hideDone;
-  const btn = document.getElementById('hideDoneBtn');
-  btn.textContent = hideDone ? '👁 顯示全部' : '👁 隱藏已完成';
-  btn.style.background = hideDone ? '#e8f5e9' : 'white';
-  btn.style.color = hideDone ? '#2e7d32' : 'var(--muted)';
-  renderScripts(scriptFilter);
-}
+const ROLES = ['老闆決策','專案顧問','業務開發','團隊管理','行政財務','BNI會務','研發工作'];
+const ROLE_COLORS = {
+  '老闆決策':'var(--r-boss)','專案顧問':'var(--r-project)',
+  '業務開發':'var(--r-biz)','團隊管理':'var(--r-team)',
+  '行政財務':'var(--r-admin)','BNI會務':'var(--r-bni)','研發工作':'var(--r-rd)'
+};
+const PRI_ORDER = {'高':0,'中':1,'低':2};
 
-// ── AI 產出每日單字 ─────────────────
-function generateVocab() {
-  const btn = document.getElementById('genVocabBtn');
-  const result = document.getElementById('genVocabResult');
-  btn.textContent = '⏳ AI 生成中...（約10秒）';
-  btn.disabled = true;
-  result.style.display = 'none';
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init() {
+  const d = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('todayDate').textContent =
+    `${d.getMonth()+1}/${d.getDate()} 週${days[d.getDay()]}`;
 
-  google.script.run
-    .withSuccessHandler(res => {
-      btn.disabled = false;
-      result.style.display = 'block';
-      if (res.success) {
-        btn.textContent = '✅ 今日已產出！明天再來';
-        result.innerHTML = `<strong style="color:var(--primary)">✅ 新增 ${res.count} 個單字到複習清單：</strong><br>` +
-          res.words.map(w => `⚔️ ${w}`).join('<br>');
-        loadTodayCount();
-      } else if (res.message) {
-        btn.textContent = '🤖 產出今日 7 個單字';
-        result.innerHTML = `<span style="color:var(--muted)">${res.message}</span>`;
-      } else {
-        btn.textContent = '🤖 產出今日 7 個單字';
-        result.innerHTML = `<span style="color:red">❌ ${res.error || '發生錯誤'}</span>`;
-      }
-    })
-    .withFailureHandler(e => {
-      btn.disabled = false;
-      btn.textContent = '🤖 產出今日 7 個單字';
-      result.style.display = 'block';
-      result.innerHTML = `<span style="color:red">❌ ${e.message}</span>`;
-    })
-    .generateDailyVocab();
+  setupChips('roleChips',  v => selectedRole    = v, true);
+  setupChips('priChips',   v => selectedPri     = v, true);
+  setupChips('pbCatChips', v => selectedProbCat = v, true);
+  setupChips('pbPriChips', v => selectedProbPri = v, true);
+  setupChips('plPriChips', v => selectedPlPri   = v, true);
+  setupAssignInput();
+
+  if (scriptUrl) loadFromSheet();
+  else showNoScriptBanner();
 }
 
-// ── Navigation ─────────────────────
-function showView(id, btn) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (btn) btn.classList.add('active');
+// ═══════════════════════════════════════
+// SHEET — READ
+// ═══════════════════════════════════════
+function setSyncDot(state) {
+  const dot = document.getElementById('syncDot');
+  if (dot) dot.className = 'sync-dot ' + (state||'');
 }
 
-function goHome() {
-  showView('homeView', document.getElementById('navHome'));
-
-  // 若剛完成複習，先用本地數值立即更新畫面（避免 server 寫入未完成就讀到舊資料）
-  if (window._reviewedCount > 0) {
-    const prev = parseInt(document.getElementById('todayReviewed').textContent) || 0;
-    document.getElementById('todayReviewed').textContent = prev + window._reviewedCount;
-    document.getElementById('todayCount').textContent = '0';
-    window._reviewedCount = 0;
-    // 延遲 2 秒再從 server 同步，確保寫入已完成
-    setTimeout(() => { loadStats(); loadTodayCount(); }, 2000);
-  } else {
-    loadStats();
-    loadTodayCount();
-  }
+function showNoScriptBanner() {
+  document.getElementById('mainArea').innerHTML = `
+    <div style="text-align:center;padding:3rem 1.5rem;color:var(--text2)">
+      <div style="font-size:2rem;margin-bottom:1rem;opacity:0.4">⚙</div>
+      <div style="font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:0.5rem">尚未設定 Google Sheet 連結</div>
+      <div style="font-size:0.82rem;line-height:1.8;margin-bottom:1.5rem">點右上角 ⚙ 設定，貼上你的 Apps Script 網址</div>
+      <button onclick="openSettings()" style="padding:0.7rem 1.8rem;background:var(--gold);color:var(--bg);border:none;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit">⚙ 前往設定</button>
+    </div>`;
 }
 
-// ── Toast ───────────────────────────
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
-}
-
-// ── TTS (Web Speech API) ────────────
-function speak(text) {
-  if (!window.speechSynthesis) { toast('此瀏覽器不支援語音'); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = 0.85;
-  u.pitch = 1.0;
-  speechSynthesis.speak(u);
-}
-function speakCurrent()  { if (curItem)   speak(curItem.word || curItem.phrase); }
-function speakScript() {
-  if (!curScript) return;
-  const btn = document.querySelector('.modal-acts .btn-outline');
-  speak(curScript.content);
-  if (btn) {
-    btn.textContent = '🔊 朗讀中...';
-    btn.disabled = true;
-    // 語音結束後恢復按鈕
-    const u = speechSynthesis.speaking;
-    const check = setInterval(() => {
-      if (!speechSynthesis.speaking) {
-        clearInterval(check);
-        btn.textContent = '🔊 朗讀全文';
-        btn.disabled = false;
-      }
-    }, 500);
-  }
-}
-
-// ── Stats / Home ────────────────────
-function loadStats() {
-  google.script.run
-    .withSuccessHandler(s => {
-      document.getElementById('totalWords').textContent   = s.totalWords  || 0;
-      document.getElementById('mastered').textContent     = s.mastered    || 0;
-      document.getElementById('streak').textContent       = s.streak      || 0;
-      document.getElementById('todayReviewed').textContent = s.todayReviewed || 0;
-      document.getElementById('streakBadge').textContent  = s.streak > 0 ? '🔥'+s.streak : '🔥';
-    })
-    .withFailureHandler(e => console.error(e))
-    .getStats();
-}
-
-function loadTodayCount() {
-  google.script.run
-    .withSuccessHandler(d => {
-      const n = (d.vocabulary||[]).length + (d.phrases||[]).length;
-      document.getElementById('todayCount').textContent = n;
-    })
-    .withFailureHandler(e => console.error(e))
-    .getTodayReview();
-}
-
-// ── Review ──────────────────────────
-function startReview() {
-  showView('reviewView', document.getElementById('navReview'));
-  document.getElementById('rContent').style.display = 'none';
-  document.getElementById('rDone').style.display    = 'none';
-  document.getElementById('rEmpty').style.display   = 'none';
-
-  google.script.run
-    .withSuccessHandler(data => {
-      const voc  = (data.vocabulary||[]).map(v => ({...v, _type:'vocabulary'}));
-      const phr  = (data.phrases||[]).map(p => ({...p, _type:'phrase'}));
-      reviewQueue = [...voc, ...phr];
-      reviewIdx   = 0;
-      if (reviewQueue.length === 0) {
-        document.getElementById('rEmpty').style.display = 'block';
-      } else {
-        document.getElementById('rContent').style.display = 'block';
-        showCard(0);
-      }
-    })
-    .withFailureHandler(e => { toast('載入失敗'); console.error(e); })
-    .getTodayReview();
-}
-
-function showCard(idx) {
-  if (idx >= reviewQueue.length) { finishReview(); return; }
-
-  curItem   = reviewQueue[idx];
-  isFlipped = false;
-  document.getElementById('flipInner').classList.remove('flipped');
-
-  const total = reviewQueue.length;
-  document.getElementById('progTxt').textContent    = (idx + 1) + ' / ' + total;
-  document.getElementById('progFill').style.width   = (idx / total * 100) + '%';
-
-  if (curItem._type === 'vocabulary') {
-    document.getElementById('wordMain').textContent    = curItem.word || '-';
-    document.getElementById('wordPhonetic').textContent = curItem.phonetic || '';
-    document.getElementById('backZh').textContent      = curItem.zh_meaning || '-';
-    document.getElementById('backEn').textContent      = curItem.en_definition || '';
-    document.getElementById('backExample').textContent = curItem.example ? '"' + curItem.example + '"' : '';
-    document.getElementById('backTag').textContent     = curItem.sdg_tag || '';
-  } else {
-    document.getElementById('wordMain').textContent    = curItem.phrase || '-';
-    document.getElementById('wordPhonetic').textContent = curItem.context || '';
-    document.getElementById('backZh').textContent      = curItem.zh_meaning || '短句';
-    document.getElementById('backEn').textContent      = '';
-    document.getElementById('backExample').textContent = '"' + (curItem.phrase || '') + '"';
-    document.getElementById('backTag').textContent     = '短句咒語';
-  }
-
-  setTimeout(speakCurrent, 450);
-}
-
-function flipCard() {
-  isFlipped = !isFlipped;
-  document.getElementById('flipInner').classList.toggle('flipped', isFlipped);
-}
-
-function scoreCard(score) {
-  if (!curItem) return;
-
-  google.script.run.withSuccessHandler(()=>{}).withFailureHandler(e=>console.error(e))
-    .updateMastery(curItem.id, curItem._type, score);
-
-  google.script.run.withSuccessHandler(()=>{}).withFailureHandler(e=>console.error(e))
-    .logReview(curItem._type, curItem.id, ['','no','fuzzy','know','easy'][score], 0);
-
-  reviewIdx++;
-  showCard(reviewIdx);
-}
-
-function finishReview() {
-  document.getElementById('rContent').style.display = 'none';
-  document.getElementById('rDone').style.display    = 'block';
-  document.getElementById('rSummary').textContent   =
-    '完成了 ' + reviewQueue.length + ' 個複習！繼續保持 💪';
-  toast('🎉 太棒了！今日複習完成');
-  // 記錄本次複習數量，供回首頁時立即更新
-  window._reviewedCount = (window._reviewedCount || 0) + reviewQueue.length;
-}
-
-// ── Scripts ─────────────────────────
-function loadScripts() {
-  document.getElementById('scriptsList').innerHTML =
-    '<div style="padding:20px;text-align:center;color:var(--muted)"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
-
-  google.script.run
-    .withSuccessHandler(scripts => {
-      allScripts = scripts || [];
-      renderScripts(scriptFilter);
-    })
-    .withFailureHandler(e => {
-      document.getElementById('scriptsList').innerHTML =
-        '<div class="empty"><p>載入失敗，請重試</p></div>';
-      console.error(e);
-    })
-    .getScripts();
-}
-
-function filterScripts(f, btn) {
-  scriptFilter = f;
-  document.querySelectorAll('#scriptsView .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderScripts(f);
-}
-
-const TYPE_LABEL = { '90s':'🍸 90s破冰', '3min':'📊 3min提案', '2min':'🤝 2min支持' };
-const TYPE_CLS   = { '90s':'t-90s', '3min':'t-3min', '2min':'t-2min' };
-
-function renderScripts(f) {
-  const list = document.getElementById('scriptsList');
-  // A. 最新在最上面（依 id 倒序，id = 'S' + timestamp）
-  let filtered = (f === 'all' ? allScripts : allScripts.filter(s => s.type === f))
-    .sort((a, b) => b.id.localeCompare(a.id));
-
-  // B. 隱藏已完成
-  if (hideDone) {
-    const done = getDoneSet();
-    filtered = filtered.filter(s => !done.has(s.id));
-  }
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="empty"><div class="ico">📝</div><p>還沒有腳本<br>去新增你的軍火庫吧！</p></div>';
+async function loadFromSheet() {
+  if (!scriptUrl) return;
+  setSyncDot('syncing');
+  document.getElementById('mainArea').innerHTML =
+    `<div style="text-align:center;padding:3rem;color:var(--text3);font-size:0.85rem">從 Google Sheet 載入中…</div>`;
+  try {
+    const res  = await fetch(scriptUrl + '?action=load', { cache:'no-store' });
+    const data = await res.json();
+    if (data.ok) {
+      todos    = data.todos    || [];
+      problems = data.problems || [];
+      setSyncDot('ok');
+      setTimeout(() => setSyncDot(''), 3000);
+    } else throw new Error(data.msg);
+  } catch(e) {
+    setSyncDot('err');
+    document.getElementById('mainArea').innerHTML = `
+      <div style="text-align:center;padding:3rem 1.5rem;color:var(--text2)">
+        <div style="font-size:1.8rem;margin-bottom:0.8rem;opacity:0.4">⚠</div>
+        <div style="font-size:0.88rem;color:var(--red);margin-bottom:0.8rem">無法連線到 Google Sheet</div>
+        <div style="font-size:0.78rem;line-height:1.8;margin-bottom:1.2rem">請確認 Apps Script 已部署，且存取權設為「所有人」</div>
+        <button onclick="loadFromSheet()" style="padding:0.6rem 1.4rem;background:var(--surface2);color:var(--text);border:1.5px solid var(--border2);border-radius:8px;font-size:0.85rem;cursor:pointer;font-family:inherit">↻ 重試</button>
+      </div>`;
     return;
   }
-
-  const done = getDoneSet();
-  list.innerHTML = filtered.map(s => {
-    const isDone = done.has(s.id);
-    return `
-    <div class="script-card" style="${isDone ? 'opacity:0.6' : ''}" onclick="openScript('${esc(s.id)}')">
-      <div class="script-header">
-        <div class="script-title">${isDone ? '✅ ' : ''}${esc(s.title||'')}</div>
-        <span class="type-badge ${TYPE_CLS[s.type]||''}">${TYPE_LABEL[s.type]||s.type}</span>
-      </div>
-      <div class="script-preview">${esc(s.content||'')}</div>
-      <div class="script-foot">
-        <span>練習 ${s.practice_count||0} 次</span>
-        <button onclick="event.stopPropagation();toggleDone('${esc(s.id)}')"
-          style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid ${isDone ? '#4caf50' : '#ccc'};
-                 background:${isDone ? '#e8f5e9' : 'white'};color:${isDone ? '#2e7d32' : 'var(--muted)'};cursor:pointer">
-          ${isDone ? '↩ 取消完成' : '✅ 完成'}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
+  render();
 }
 
-function openScript(id) {
-  curScript = allScripts.find(s => s.id === id);
-  if (!curScript) return;
-  document.getElementById('mTitle').textContent = curScript.title || '';
-  document.getElementById('mBadge').className   = 'type-badge ' + (TYPE_CLS[curScript.type]||'');
-  document.getElementById('mBadge').textContent  = TYPE_LABEL[curScript.type] || curScript.type;
-  document.getElementById('mBody').textContent   = curScript.content || '';
-  document.getElementById('timerBox').style.display = 'none';
-  document.getElementById('scriptOverlay').classList.add('active');
+// ── WRITE ──
+function sheetWrite(params) {
+  if (!scriptUrl) return;
+  setSyncDot('syncing');
+  const img = new Image();
+  img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
+  img.src = scriptUrl + '?' + new URLSearchParams(params).toString();
 }
 
-function closeModal()        { document.getElementById('scriptOverlay').classList.remove('active'); stopTimer(); speechSynthesis.cancel(); clearTimeout(window._toastTimer); document.getElementById('toast').classList.remove('show'); }
-function maybeClose(e)       { if (e.target === document.getElementById('scriptOverlay')) closeModal(); }
+function syncUpsertTodo(t) {
+  sheetWrite({ action:'upsert', type:'todo',
+    id:t.id, title:t.title, role:t.role, assign:t.assign||'',
+    due:t.due||'', project:t.project||'', note:t.note||'',
+    status:t.status, hasProb:String(!!t.hasProb),
+    priority:t.priority||'中', sortOrder:String(t.sortOrder||0),
+    created:t.created||'' });
+}
+function syncUpsertProb(p) {
+  sheetWrite({ action:'upsert', type:'problem',
+    id:p.id, title:p.title, category:p.category||'',
+    priority:p.priority||'', freq:p.freq||'',
+    trigger:p.trigger||'', detail:p.detail||'',
+    fromTodo:String(!!p.fromTodo), created:p.created||'' });
+}
+function syncDeleteTodo(id) { sheetWrite({ action:'delete', type:'todo',    id }); }
+function syncDeleteProb(id) { sheetWrite({ action:'delete', type:'problem', id }); }
 
-function practiceScript() {
-  document.getElementById('timerBox').style.display = 'block';
-  timerSecs = 0;
-  document.getElementById('timerNum').textContent = '0:00';
-  clearInterval(timerIv);
-  timerIv = setInterval(() => {
-    timerSecs++;
-    const m = Math.floor(timerSecs/60), s = timerSecs%60;
-    document.getElementById('timerNum').textContent = m + ':' + String(s).padStart(2,'0');
-  }, 1000);
-
-  if (curScript) {
-    google.script.run.withSuccessHandler(()=>{}).incrementPracticeCount(curScript.id);
-    // Reload scripts list in background
-    google.script.run.withSuccessHandler(s=>{allScripts=s||[];}).getScripts();
-  }
+// 批次排序：一次送出所有 ID 和 sortOrder，GAS 端一次更新
+function syncBatchSort() {
+  if (!scriptUrl) return;
+  setSyncDot('syncing');
+  const orders = todos.map(t => t.id + ':' + t.sortOrder).join(',');
+  const img = new Image();
+  img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
+  img.src = scriptUrl + '?' + new URLSearchParams({ action:'batchSort', orders }).toString();
 }
 
-function stopTimer() { clearInterval(timerIv); timerIv = null; }
-
-// ── Add Forms ───────────────────────
-function switchAdd(type, btn) {
-  document.querySelectorAll('#addView .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('vocabForm').style.display  = type==='vocab'  ? 'block' : 'none';
-  document.getElementById('phraseForm').style.display = type==='phrase' ? 'block' : 'none';
-  document.getElementById('scriptForm').style.display = type==='script' ? 'block' : 'none';
+// ═══════════════════════════════════════
+// ASSIGN INPUT
+// ═══════════════════════════════════════
+function setupAssignInput() {
+  const input = document.getElementById('td_assign_input');
+  if (!input) return;
+  input.addEventListener('keydown', e => {
+    if ((e.key==='Enter'||e.key===',') && input.value.trim()) {
+      e.preventDefault(); addAssignee(input.value.trim()); input.value='';
+    }
+    if (e.key==='Backspace' && input.value==='' && assignees.length>0)
+      removeAssignee(assignees[assignees.length-1]);
+  });
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) { addAssignee(input.value.trim()); input.value=''; }
+  });
+}
+function quickAssign(name) { addAssignee(name); }
+function addAssignee(name) {
+  if (!assignees.includes(name)) { assignees.push(name); renderAssignTags(); }
+}
+function removeAssignee(name) {
+  assignees = assignees.filter(a=>a!==name); renderAssignTags();
+}
+function renderAssignTags() {
+  const c = document.getElementById('assignTags');
+  if (!c) return;
+  c.innerHTML = assignees.map(n =>
+    `<span class="assign-tag">${n}<span class="assign-tag-remove" onclick="removeAssignee('${n.replace(/'/g,"\\'")}')">✕</span></span>`
+  ).join('');
+  document.querySelectorAll('.preset-chip').forEach(chip =>
+    chip.classList.toggle('used', assignees.includes(chip.textContent.trim()))
+  );
+}
+function resetAssignees(names) {
+  assignees = names ? names.split('、').filter(Boolean) : [];
+  renderAssignTags();
+  const i = document.getElementById('td_assign_input');
+  if (i) i.value='';
 }
 
-function submitVocab() {
-  const word = document.getElementById('vWord').value.trim();
-  const zh   = document.getElementById('vZh').value.trim();
-  if (!word || !zh) { toast('請填入單字和中文意思'); return; }
-
-  const item = {
-    word,
-    phonetic:      document.getElementById('vPhonetic').value.trim(),
-    zh_meaning:    zh,
-    en_definition: document.getElementById('vEn').value.trim(),
-    example:       document.getElementById('vExample').value.trim(),
-    sdg_tag:       document.getElementById('vTag').value
-  };
-
-  toast('⏳ 儲存中...');
-  google.script.run
-    .withSuccessHandler(() => {
-      toast('✅ 單字已加入單字牆！');
-      ['vWord','vPhonetic','vZh','vEn','vExample'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('vTag').value = '';
-      loadTodayCount();
-    })
-    .withFailureHandler(e => { toast('❌ 儲存失敗'); console.error(e); })
-    .addVocabulary(item);
-}
-
-function submitPhrase() {
-  const phrase = document.getElementById('pPhrase').value.trim();
-  if (!phrase) { toast('請填入英文短句'); return; }
-
-  google.script.run
-    .withSuccessHandler(() => {
-      toast('✅ 咒語已加入！');
-      ['pPhrase','pContext','pZh'].forEach(id => document.getElementById(id).value='');
-    })
-    .withFailureHandler(e => { toast('❌ 儲存失敗'); console.error(e); })
-    .addPhrase({
-      phrase,
-      context:    document.getElementById('pContext').value.trim(),
-      zh_meaning: document.getElementById('pZh').value.trim()
+// ═══════════════════════════════════════
+// CHIP SETUP
+// ═══════════════════════════════════════
+function setupChips(cid, onChange, single=true) {
+  const c = document.getElementById(cid);
+  if (!c) return;
+  c.querySelectorAll('.chip-sel').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (single) {
+        c.querySelectorAll('.chip-sel').forEach(x => x.classList.remove('active'));
+        chip.classList.add('active');
+        onChange(chip.dataset.role || chip.dataset.pri || chip.dataset.p || chip.dataset.cat);
+      } else chip.classList.toggle('active');
     });
+  });
 }
 
-function submitScript() {
-  const title   = document.getElementById('sTitle').value.trim();
-  const content = document.getElementById('sContent').value.trim();
-  if (!title || !content) { toast('請填入標題和內容'); return; }
-
-  google.script.run
-    .withSuccessHandler(() => {
-      toast('✅ 腳本已加入軍火庫！');
-      document.getElementById('sTitle').value = '';
-      document.getElementById('sContent').value = '';
-    })
-    .withFailureHandler(e => { toast('❌ 儲存失敗'); console.error(e); })
-    .addScript({ title, type: document.getElementById('sType').value, content });
+function setChipActive(cid, val) {
+  const c = document.getElementById(cid);
+  if (!c) return;
+  c.querySelectorAll('.chip-sel').forEach(chip => {
+    const v = chip.dataset.role||chip.dataset.pri||chip.dataset.p||chip.dataset.cat;
+    chip.classList.toggle('active', v===val);
+  });
 }
 
-// ── Coach Chat ──────────────────────
-function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg   = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-
-  appendMsg('user', msg);
-
-  const lid = 'ld_' + Date.now();
-  document.getElementById('chatMsgs').insertAdjacentHTML('beforeend',
-    `<div class="msg ai" id="${lid}"><div class="bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`
-  );
-  scrollChat();
-
-  google.script.run
-    .withSuccessHandler(res => {
-      document.getElementById(lid)?.remove();
-      appendMsg('ai', res.success ? res.text : '⚠️ 教練暫時無法回應，請稍後再試。');
-    })
-    .withFailureHandler(e => {
-      document.getElementById(lid)?.remove();
-      appendMsg('ai', '⚠️ 連線錯誤，請確認網路。');
-      console.error(e);
-    })
-    .askGemini(msg);
+// ═══════════════════════════════════════
+// TAB
+// ═══════════════════════════════════════
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('fabTodo').style.display = tab==='todo'?'':'none';
+  document.getElementById('fabProb').style.display = tab==='problems'?'':'none';
+  render();
 }
 
-function appendMsg(role, text) {
-  const saveBtn = role === 'ai'
-    ? `<button class="save-msg-btn" onclick="saveCoachResponse(this)">📌 存入軍火庫</button>`
-    : '';
-  document.getElementById('chatMsgs').insertAdjacentHTML('beforeend',
-    `<div class="msg ${role}"><div class="bubble">${escHtml(text).replace(/\n/g,'<br>')}${saveBtn}</div></div>`
-  );
-  scrollChat();
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function render() {
+  const area = document.getElementById('mainArea');
+  if (currentTab==='todo') renderTodos(area);
+  else renderProblems(area);
+  updateBadges();
 }
 
-function saveCoachResponse(btn) {
-  const bubble = btn.closest('.bubble').cloneNode(true);
-  bubble.querySelectorAll('button').forEach(b => b.remove());
-  const content = bubble.textContent.trim();
-  const title = prompt('📌 腳本標題：');
-  if (!title) return;
-  const pick = prompt('選擇類型（輸入數字）：\n1 → 酒會破冰 90秒\n2 → 項目提案 3分鐘\n3 → 尋求支持 2分鐘', '1');
-  const type = {'1':'90s','2':'3min','3':'2min'}[pick] || '90s';
-  toast('⏳ 儲存中...');
-  google.script.run
-    .withSuccessHandler(() => toast('✅ 已存入軍火庫！'))
-    .withFailureHandler(() => toast('❌ 儲存失敗'))
-    .addScript({ title, type, content });
+function updateBadges() {
+  document.getElementById('todoBadge').textContent = todos.filter(t=>t.status!=='完成').length;
+  document.getElementById('probBadge').textContent = problems.length;
 }
 
-function togglePastePanel() {
-  document.getElementById('pastePanel').classList.toggle('open');
+function renderTodos(area) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const total      = todos.filter(t=>t.status!=='完成').length;
+  const inProgress = todos.filter(t=>t.status==='進行中').length;
+  const withProbs  = todos.filter(t=>t.hasProb).length;
+
+  const filtered = activeRole==='all' ? todos : todos.filter(t=>t.role===activeRole);
+
+  // Sort active: by priority then sortOrder
+  const active = filtered.filter(t=>t.status!=='完成')
+    .sort((a,b) => {
+      const pd = (PRI_ORDER[a.priority]||1) - (PRI_ORDER[b.priority]||1);
+      return pd !== 0 ? pd : (a.sortOrder||0) - (b.sortOrder||0);
+    });
+  const done   = filtered.filter(t=>t.status==='完成');
+
+  let html = `
+    <div class="stats-bar">
+      <div class="stat-box"><div class="stat-num gold">${total}</div><div class="stat-label">待處理</div></div>
+      <div class="stat-box"><div class="stat-num">${inProgress}</div><div class="stat-label">進行中</div></div>
+      <div class="stat-box"><div class="stat-num red">${withProbs}</div><div class="stat-label">有問題</div></div>
+    </div>
+    <div class="role-filter">
+      ${['all',...ROLES].map(r => `
+        <button class="role-chip ${activeRole===r?'active':''}" data-role="${r}" onclick="filterRole('${r}')">${r==='all'?'全部':r}</button>
+      `).join('')}
+    </div>`;
+
+  if (active.length===0 && done.length===0) {
+    html += `<div class="empty"><div class="empty-icon">✦</div><div class="empty-text">沒有待辦事項<br>點下方按鈕新增</div></div>`;
+  } else {
+    if (active.length>0) {
+      html += `<div class="section-head"><span class="section-title">待處理 / 進行中</span><span class="section-count">${active.length} 筆</span></div>`;
+      html += `<div id="todoList">` + active.map(t=>todoCard(t,today)).join('') + `</div>`;
+    }
+    if (done.length>0) {
+      html += `
+        <div class="done-toggle ${doneOpen?'open':''}" onclick="toggleDoneSection()">
+          <span class="done-toggle-label">✓ 已完成（${done.length} 筆）</span>
+          <span class="done-toggle-arrow">▼</span>
+        </div>
+        <div class="done-list ${doneOpen?'open':''}">
+          ${done.map(t=>todoCard(t,today)).join('')}
+        </div>`;
+    }
+  }
+  area.innerHTML = html;
+  setupDragDrop();
 }
 
-function quickPrompt(msg) {
-  document.getElementById('chatInput').value = msg;
-  sendChat();
+function todoCard(t, today) {
+  const isDone = t.status==='完成';
+  let dueMeta = '';
+  if (t.due) {
+    const dd = new Date(t.due); dd.setHours(0,0,0,0);
+    const diff = Math.round((dd-today)/86400000);
+    if (!isDone) {
+      if (diff<0)       dueMeta=`<span class="meta-chip overdue">逾期${-diff}天</span>`;
+      else if (diff===0) dueMeta=`<span class="meta-chip due-soon">今天到期</span>`;
+      else if (diff<=2)  dueMeta=`<span class="meta-chip due-soon">剩${diff}天</span>`;
+      else               dueMeta=`<span class="meta-chip">${t.due.slice(5).replace('-','/')}</span>`;
+    }
+  }
+  const pri = t.priority||'中';
+  return `
+  <div class="todo-card ${isDone?'done':''}" data-role="${t.role}" data-id="${t.id}"
+       draggable="true" onclick="toggleExpand('${t.id}')">
+    <div class="todo-top">
+      <div class="todo-check" onclick="toggleDone(event,'${t.id}')">${isDone?'✓':''}</div>
+      <div class="todo-body">
+        <div class="todo-title">${t.title}</div>
+        <div class="todo-meta">
+          <span class="meta-chip role" data-role="${t.role}">${t.role}</span>
+          <span class="pri-badge ${pri}">${pri}</span>
+          ${t.assign&&t.assign!=='我自己'?`<span class="meta-chip">→ ${t.assign}</span>`:''}
+          ${t.project?`<span class="meta-chip">◎ ${t.project}</span>`:''}
+          ${dueMeta}
+          ${t.hasProb?`<span class="meta-chip has-problem">⚠ 有問題</span>`:''}
+        </div>
+        <div class="status-row" onclick="event.stopPropagation()">
+          ${['待處理','進行中','完成'].map(s=>
+            `<button class="status-opt ${t.status===s?'active':''}" data-s="${s}" onclick="setStatus('${t.id}','${s}')">${s}</button>`
+          ).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="todo-actions">
+      <button class="action-btn edit-btn" onclick="openEditForm(event,'${t.id}')">✎ 編輯</button>
+      <button class="action-btn problem-btn ${t.hasProb?'active':''}" onclick="markProblem(event,'${t.id}')">⚠ ${t.hasProb?'已標記':'標記問題'}</button>
+      <button class="action-btn danger" onclick="deleteTodo(event,'${t.id}')">刪除</button>
+    </div>
+  </div>`;
 }
 
-function analyzePaste() {
-  const raw = document.getElementById('pasteInput').value.trim();
-  if (!raw) { toast('請先貼上要分析的文字'); return; }
-
-  const prompt =
-    `請分析以下英文腳本，提供三個部分：\n` +
-    `【關鍵詞彙】列出 5-8 個重要 SDG/ESG 商務英文詞彙，每行格式：詞彙 | 音標 | 中文 | SDG標籤\n` +
-    `【潤色版本】提供更地道、有影響力的英文修改版本\n` +
-    `【使用建議】說明這段腳本最適合的場景\n\n` +
-    `原始內容：\n${raw}`;
-
-  document.getElementById('pastePanel').classList.remove('open');
-  document.getElementById('pasteInput').value = '';
-  appendMsg('user', '📋 貼上腳本進行分析...');
-
-  const lid = 'ld_' + Date.now();
-  document.getElementById('chatMsgs').insertAdjacentHTML('beforeend',
-    `<div class="msg ai" id="${lid}"><div class="bubble"><div class="dots">` +
-    `<div class="dot"></div><div class="dot"></div><div class="dot"></div>` +
-    `</div></div></div>`
-  );
-  scrollChat();
-
-  google.script.run
-    .withSuccessHandler(res => {
-      document.getElementById(lid)?.remove();
-      appendMsg('ai', res.success ? res.text : '⚠️ 分析失敗，請稍後再試。');
-    })
-    .withFailureHandler(() => {
-      document.getElementById(lid)?.remove();
-      appendMsg('ai', '⚠️ 連線錯誤，請稍後再試。');
-    })
-    .askGemini(prompt);
+function renderProblems(area) {
+  if (problems.length===0) {
+    area.innerHTML=`<div class="empty"><div class="empty-icon">◈</div><div class="empty-text">還沒有問題記錄<br>在待辦標記問題，或點下方按鈕</div></div>`;
+    return;
+  }
+  const sorted=[...problems].sort((a,b)=>(PRI_ORDER[a.priority]||2)-(PRI_ORDER[b.priority]||2));
+  area.innerHTML = `<div class="section-head"><span class="section-title">問題清單</span><span class="section-count">${problems.length} 筆</span></div>`
+    + sorted.map(p=>`
+      <div class="prob-card" onclick="openProbDetail('${p.id}')">
+        <div class="prob-meta">
+          <span class="priority-chip ${p.priority}">${p.priority}優先</span>
+          <span class="meta-chip">${p.category}</span>
+          <span class="meta-chip">${p.freq||''}</span>
+          ${p.fromTodo?`<span class="meta-chip" style="color:var(--blue)">↳ 來自待辦</span>`:''}
+        </div>
+        <div class="prob-title">${p.title}</div>
+        ${p.detail?`<div class="prob-desc">${p.detail}</div>`:''}
+      </div>`).join('');
 }
 
-function scrollChat() {
-  const el = document.getElementById('chatMsgs');
-  el.scrollTop = el.scrollHeight;
+// ═══════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════
+function setupDragDrop() {
+  const list = document.getElementById('todoList');
+  if (!list) return;
+  list.querySelectorAll('.todo-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrcId = card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      list.querySelectorAll('.todo-card').forEach(c=>c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      list.querySelectorAll('.todo-card').forEach(c=>c.classList.remove('drag-over'));
+      if (card.dataset.id!==dragSrcId) card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!dragSrcId || card.dataset.id===dragSrcId) return;
+      card.classList.remove('drag-over');
+
+      // Reorder in todos array
+      const srcIdx  = todos.findIndex(t=>t.id===dragSrcId);
+      const destIdx = todos.findIndex(t=>t.id===card.dataset.id);
+      if (srcIdx<0||destIdx<0) return;
+      const [moved] = todos.splice(srcIdx,1);
+      todos.splice(destIdx,0,moved);
+
+      // Update sortOrder numbers
+      todos.forEach((t,i)=>{ t.sortOrder=i; });
+
+      // 一次送出所有順序，不要每筆各送一次
+      syncBatchSort();
+      render();
+    });
+  });
 }
 
-// ── Utils ────────────────────────────
-function esc(str)     { return String(str||'').replace(/'/g,"\\'"); }
-function escHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-function fmtDate(val) {
-  if (!val) return '';
-  if (val instanceof Date) return val.toLocaleDateString('zh-TW');
-  return String(val).split('T')[0];
+// ═══════════════════════════════════════
+// DONE SECTION TOGGLE
+// ═══════════════════════════════════════
+function toggleDoneSection() {
+  doneOpen = !doneOpen;
+  document.querySelector('.done-toggle')?.classList.toggle('open', doneOpen);
+  document.querySelector('.done-list')?.classList.toggle('open', doneOpen);
 }
 
-// ── Init ────────────────────────────
-window.addEventListener('load', () => {
-  loadStats();
-  loadTodayCount();
-});
+// ═══════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════
+function filterRole(role) { activeRole=role; render(); }
+function toggleExpand(id) { document.querySelector(`.todo-card[data-id="${id}"]`)?.classList.toggle('expanded'); }
+
+function toggleDone(e, id) {
+  e.stopPropagation();
+  const t = todos.find(x=>x.id===id);
+  if (!t) return;
+  t.status = t.status==='完成'?'待處理':'完成';
+  syncUpsertTodo(t); render();
+}
+function setStatus(id, status) {
+  const t = todos.find(x=>x.id===id);
+  if (!t) return;
+  t.status=status; syncUpsertTodo(t); render();
+}
+function markProblem(e, id) {
+  e.stopPropagation();
+  const t = todos.find(x=>x.id===id);
+  if (!t) return;
+  if (t.hasProb) { t.hasProb=false; syncUpsertTodo(t); render(); return; }
+  document.getElementById('pb_title').value='';
+  document.getElementById('pb_trigger').value=`做「${t.title}」時`;
+  document.getElementById('pb_detail').value='';
+  window._probFromTodoId=t.id;
+  openDrawer(document.getElementById('probDrawer'));
+}
+function deleteTodo(e, id) {
+  e.stopPropagation();
+  if (!confirm('確定刪除這筆待辦？')) return;
+  todos=todos.filter(x=>x.id!==id);
+  syncDeleteTodo(id); render();
+}
+
+// ═══════════════════════════════════════
+// DRAWERS
+// ═══════════════════════════════════════
+function openDrawer(drawer) {
+  document.getElementById('overlay').classList.add('open');
+  drawer.classList.add('open');
+}
+function closeDrawer() {
+  document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('open'));
+  document.getElementById('overlay').classList.remove('open');
+  probLinkActive=false; window._probFromTodoId=null; editingId=null;
+}
+
+function openTodoForm() {
+  editingId=null;
+  document.getElementById('todoDrawerTitle').textContent='新增待辦事項';
+  document.getElementById('td_title').value='';
+  resetAssignees();
+  document.getElementById('td_due').value='';
+  document.getElementById('td_project').value='';
+  document.getElementById('td_note').value='';
+  document.getElementById('probLinkToggle').classList.remove('active');
+  document.getElementById('probLinkForm').style.display='none';
+  probLinkActive=false;
+  setChipActive('roleChips','老闆決策'); selectedRole='老闆決策';
+  setChipActive('priChips','中'); selectedPri='中';
+  openDrawer(document.getElementById('todoDrawer'));
+  setTimeout(()=>document.getElementById('td_title').focus(),350);
+}
+
+function openEditForm(e, id) {
+  e.stopPropagation();
+  const t = todos.find(x=>x.id===id);
+  if (!t) return;
+  editingId=id;
+  document.getElementById('todoDrawerTitle').textContent='編輯待辦事項';
+  document.getElementById('td_title').value=t.title;
+  resetAssignees(t.assign!=='我自己'?t.assign:'');
+  document.getElementById('td_due').value=t.due||'';
+  document.getElementById('td_project').value=t.project||'';
+  document.getElementById('td_note').value=t.note||'';
+  document.getElementById('probLinkToggle').classList.remove('active');
+  document.getElementById('probLinkForm').style.display='none';
+  probLinkActive=false;
+  setChipActive('roleChips', t.role||'老闆決策'); selectedRole=t.role||'老闆決策';
+  setChipActive('priChips',  t.priority||'中');   selectedPri=t.priority||'中';
+  openDrawer(document.getElementById('todoDrawer'));
+  setTimeout(()=>document.getElementById('td_title').focus(),350);
+}
+
+function openProbForm() {
+  window._probFromTodoId=null;
+  ['pb_title','pb_trigger','pb_detail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pb_freq').value='每天';
+  setChipActive('pbCatChips','流程效率'); selectedProbCat='流程效率';
+  setChipActive('pbPriChips','低');       selectedProbPri='低';
+  openDrawer(document.getElementById('probDrawer'));
+  setTimeout(()=>document.getElementById('pb_title').focus(),350);
+}
+
+function toggleProbLink() {
+  probLinkActive=!probLinkActive;
+  document.getElementById('probLinkToggle').classList.toggle('active',probLinkActive);
+  document.getElementById('probLinkForm').style.display=probLinkActive?'block':'none';
+}
+
+function openProbDetail(id) {
+  const p=problems.find(x=>x.id===id);
+  if (!p) return;
+  document.getElementById('probDetailContent').innerHTML=`
+    <div class="drawer-title">${p.title}</div>
+    <div class="detail-row"><div class="detail-label">類別</div><div class="detail-val">${p.category}</div></div>
+    <div class="detail-row"><div class="detail-label">優先程度</div><div class="detail-val">${p.priority}優先</div></div>
+    <div class="detail-row"><div class="detail-label">發生頻率</div><div class="detail-val">${p.freq}</div></div>
+    ${p.trigger?`<div class="detail-row"><div class="detail-label">觸發情境</div><div class="detail-val">${p.trigger}</div></div>`:''}
+    ${p.detail ?`<div class="detail-row"><div class="detail-label">說明</div><div class="detail-val">${p.detail}</div></div>`:''}
+    <div class="detail-row"><div class="detail-label">記錄時間</div><div class="detail-val">${p.created}</div></div>
+    <div class="drawer-btn-row">
+      <button class="drawer-btn del" onclick="deleteProb('${p.id}')">刪除</button>
+      <button class="drawer-btn" onclick="closeDrawer()">關閉</button>
+    </div>`;
+  openDrawer(document.getElementById('probDetailDrawer'));
+}
+function deleteProb(id) {
+  if (!confirm('確定刪除這筆問題記錄？')) return;
+  problems=problems.filter(x=>x.id!==id);
+  syncDeleteProb(id); render(); closeDrawer();
+}
+
+// ═══════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════
+function saveTodo() {
+  const title=document.getElementById('td_title').value.trim();
+  if (!title) { document.getElementById('td_title').focus(); return; }
+  const now=new Date().toLocaleString('zh-TW');
+
+  if (editingId) {
+    // UPDATE existing
+    const t=todos.find(x=>x.id===editingId);
+    if (t) {
+      t.title   = title;
+      t.role    = selectedRole;
+      t.priority= selectedPri;
+      t.assign  = assignees.length>0?assignees.join('、'):'我自己';
+      t.due     = document.getElementById('td_due').value;
+      t.project = document.getElementById('td_project').value.trim();
+      t.note    = document.getElementById('td_note').value.trim();
+      syncUpsertTodo(t);
+    }
+    closeDrawer(); render(); return;
+  }
+
+  // NEW
+  const todo={
+    id:Date.now().toString(), title, role:selectedRole, priority:selectedPri,
+    assign:assignees.length>0?assignees.join('、'):'我自己',
+    due:document.getElementById('td_due').value,
+    project:document.getElementById('td_project').value.trim(),
+    note:document.getElementById('td_note').value.trim(),
+    status:'待處理', hasProb:false,
+    sortOrder:todos.length, created:now
+  };
+  todos.unshift(todo);
+  syncUpsertTodo(todo);
+
+  if (probLinkActive) {
+    const plTitle=document.getElementById('pl_title').value.trim();
+    if (plTitle) {
+      const prob={
+        id:(Date.now()+1).toString(), title:plTitle,
+        category:'流程效率', priority:selectedPlPri, freq:'偶爾',
+        trigger:`做「${title}」時`,
+        detail:document.getElementById('pl_pain').value.trim(),
+        fromTodo:true, created:now
+      };
+      problems.unshift(prob); syncUpsertProb(prob);
+    }
+  }
+  closeDrawer(); render();
+}
+
+function saveProb() {
+  const title=document.getElementById('pb_title').value.trim();
+  if (!title) { document.getElementById('pb_title').focus(); return; }
+  const fromId=window._probFromTodoId;
+  const prob={
+    id:Date.now().toString(), title,
+    category:selectedProbCat, priority:selectedProbPri,
+    freq:document.getElementById('pb_freq').value,
+    trigger:document.getElementById('pb_trigger').value.trim(),
+    detail:document.getElementById('pb_detail').value.trim(),
+    fromTodo:!!fromId, created:new Date().toLocaleString('zh-TW')
+  };
+  if (fromId) { const t=todos.find(x=>x.id===fromId); if(t){t.hasProb=true;syncUpsertTodo(t);} }
+  problems.unshift(prob); syncUpsertProb(prob); closeDrawer(); render();
+}
+
+// ═══════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════
+function openSettings() {
+  document.getElementById('set_scriptUrl').value=scriptUrl;
+  document.getElementById('testStatus').className='settings-status';
+  openDrawer(document.getElementById('settingsDrawer'));
+}
+function saveSettings() {
+  const val=document.getElementById('set_scriptUrl').value.trim();
+  scriptUrl=val; localStorage.setItem('cmd_script_url',scriptUrl);
+  closeDrawer();
+  if (scriptUrl) loadFromSheet(); else showNoScriptBanner();
+}
+function testConnection() {
+  const url=document.getElementById('set_scriptUrl').value.trim();
+  const st=document.getElementById('testStatus');
+  if (!url) { st.textContent='請先填入網址'; st.className='settings-status err'; return; }
+  if (!url.startsWith('https://script.google.com')||!url.endsWith('/exec')) {
+    st.textContent='✗ 網址結尾必須是 /exec'; st.className='settings-status err'; return;
+  }
+  st.innerHTML='格式正確 ✓ 點連結確認：<br><a href="'+url+'" target="_blank" style="color:var(--gold);text-decoration:underline">→ 在新分頁開啟</a>，顯示「指揮台後台運作中 ✓」即成功';
+  st.className='settings-status ok';
+}
+function forceSyncAll() { if (scriptUrl) loadFromSheet(); }
+
+init();
 </script>
 </body>
 </html>
