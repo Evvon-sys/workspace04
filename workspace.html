@@ -1175,14 +1175,15 @@ function syncUpsertProb(p) {
 function syncDeleteTodo(id) { sheetWrite({ action:'delete', type:'todo',    id }); }
 function syncDeleteProb(id) { sheetWrite({ action:'delete', type:'problem', id }); }
 
-// 批次排序：一次送出所有 ID 和 sortOrder，GAS 端一次更新
-function syncBatchSort() {
+// 重新排列列順序：把所有未完成待辦的 ID 按新順序送到 GAS，讓 Sheet 列實際移動
+function syncReorderRows() {
   if (!scriptUrl) return;
   setSyncDot('syncing');
-  const orders = todos.map(t => t.id + ':' + t.sortOrder).join(',');
+  // 只送未完成的 ID，按目前順序
+  const activeIds = todos.filter(t=>t.status!=='完成').map(t=>t.id).join(',');
   const img = new Image();
   img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
-  img.src = scriptUrl + '?' + new URLSearchParams({ action:'batchSort', orders }).toString();
+  img.src = scriptUrl + '?' + new URLSearchParams({ action:'reorderRows', ids: activeIds }).toString();
 }
 
 // ═══════════════════════════════════════
@@ -1430,8 +1431,8 @@ function setupDragDrop() {
       // Update sortOrder numbers
       todos.forEach((t,i)=>{ t.sortOrder=i; });
 
-      // 一次送出所有順序，不要每筆各送一次
-      syncBatchSort();
+      // 送出新列順序讓 Sheet 實際移動列
+      syncReorderRows();
       render();
     });
   });
