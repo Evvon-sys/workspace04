@@ -733,8 +733,19 @@ function showView(id, btn) {
 
 function goHome() {
   showView('homeView', document.getElementById('navHome'));
-  loadStats();
-  loadTodayCount();
+
+  // 若剛完成複習，先用本地數值立即更新畫面（避免 server 寫入未完成就讀到舊資料）
+  if (window._reviewedCount > 0) {
+    const prev = parseInt(document.getElementById('todayReviewed').textContent) || 0;
+    document.getElementById('todayReviewed').textContent = prev + window._reviewedCount;
+    document.getElementById('todayCount').textContent = '0';
+    window._reviewedCount = 0;
+    // 延遲 2 秒再從 server 同步，確保寫入已完成
+    setTimeout(() => { loadStats(); loadTodayCount(); }, 2000);
+  } else {
+    loadStats();
+    loadTodayCount();
+  }
 }
 
 // ── Toast ───────────────────────────
@@ -878,6 +889,8 @@ function finishReview() {
   document.getElementById('rSummary').textContent   =
     '完成了 ' + reviewQueue.length + ' 個複習！繼續保持 💪';
   toast('🎉 太棒了！今日複習完成');
+  // 記錄本次複習數量，供回首頁時立即更新
+  window._reviewedCount = (window._reviewedCount || 0) + reviewQueue.length;
 }
 
 // ── Scripts ─────────────────────────
