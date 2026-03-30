@@ -1286,12 +1286,9 @@ function renderTodos(area) {
 
   const filtered = activeRole==='all' ? todos : todos.filter(t=>t.role===activeRole);
 
-  // Sort active: by priority then sortOrder
+  // 完全照手動拖曳順序，不管優先等級
   const active = filtered.filter(t=>t.status!=='完成')
-    .sort((a,b) => {
-      const pd = (PRI_ORDER[a.priority]||1) - (PRI_ORDER[b.priority]||1);
-      return pd !== 0 ? pd : (a.sortOrder||0) - (b.sortOrder||0);
-    });
+    .sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
   const done   = filtered.filter(t=>t.status==='完成');
 
   let html = `
@@ -1332,13 +1329,18 @@ function todoCard(t, today) {
   const isDone = t.status==='完成';
   let dueMeta = '';
   if (t.due) {
-    const dd = new Date(t.due); dd.setHours(0,0,0,0);
+    // 清理日期字串：去掉 T 後面的時間部分（處理 ISO 格式 2026-04-10T16:00:00.000Z）
+    const cleanDue = t.due.includes('T') ? t.due.split('T')[0] : t.due;
+    const dd = new Date(cleanDue + 'T00:00:00'); dd.setHours(0,0,0,0);
     const diff = Math.round((dd-today)/86400000);
+    const m = String(dd.getMonth()+1).padStart(2,'0');
+    const d = String(dd.getDate()).padStart(2,'0');
+    const displayDate = `${m}/${d}`;
     if (!isDone) {
-      if (diff<0)       dueMeta=`<span class="meta-chip overdue">逾期${-diff}天</span>`;
+      if (diff<0)        dueMeta=`<span class="meta-chip overdue">逾期${-diff}天</span>`;
       else if (diff===0) dueMeta=`<span class="meta-chip due-soon">今天到期</span>`;
       else if (diff<=2)  dueMeta=`<span class="meta-chip due-soon">剩${diff}天</span>`;
-      else               dueMeta=`<span class="meta-chip">${t.due.slice(5).replace('-','/')}</span>`;
+      else               dueMeta=`<span class="meta-chip">${displayDate}</span>`;
     }
   }
   const pri = t.priority||'中';
@@ -1518,7 +1520,7 @@ function openEditForm(e, id) {
   document.getElementById('todoDrawerTitle').textContent='編輯待辦事項';
   document.getElementById('td_title').value=t.title;
   resetAssignees(t.assign!=='我自己'?t.assign:'');
-  document.getElementById('td_due').value=t.due||'';
+  document.getElementById('td_due').value = t.due ? (t.due.includes('T') ? t.due.split('T')[0] : t.due) : '';
   document.getElementById('td_project').value=t.project||'';
   document.getElementById('td_note').value=t.note||'';
   document.getElementById('probLinkToggle').classList.remove('active');
