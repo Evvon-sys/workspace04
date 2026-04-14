@@ -1297,9 +1297,8 @@ function renderTodos(area) {
 
   const filtered = activeRole==='all' ? todos : todos.filter(t=>t.role===activeRole);
 
-  // 完全照手動拖曳順序，不管優先等級
-  const active = filtered.filter(t=>t.status!=='完成')
-    .sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
+  // 完全照 Sheet 列順序（loadFromSheet 讀入的順序）
+  const active = filtered.filter(t=>t.status!=='完成');
   const done   = filtered.filter(t=>t.status==='完成');
 
   let html = `
