@@ -1190,6 +1190,7 @@ function syncReorderRows() {
   if (!scriptUrl) return;
   setSyncDot('syncing');
   const activeIds = todos.filter(t=>t.status!=='完成').map(t=>t.id).join(',');
+  console.log('[reorder] sending', todos.filter(t=>t.status!=='完成').length, 'ids, url length:', (scriptUrl + '?action=reorderRows&ids=' + activeIds).length);
   // 用 fetch no-cors 避免 URL 長度限制
   fetch(scriptUrl + '?' + new URLSearchParams({ action:'reorderRows', ids: activeIds }).toString(), {
     method: 'GET', mode: 'no-cors', cache: 'no-store'
