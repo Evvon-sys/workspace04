@@ -1420,10 +1420,12 @@ function setupDragDrop() {
       dragSrcId = card.dataset.id;
       card.classList.add('dragging');
       e.dataTransfer.effectAllowed='move';
+      console.log('[drag] START:', card.dataset.id);
     });
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
       list.querySelectorAll('.todo-card').forEach(c=>c.classList.remove('drag-over'));
+      console.log('[drag] END, dragSrcId:', dragSrcId);
     });
     card.addEventListener('dragover', e => {
       e.preventDefault(); e.dataTransfer.dropEffect='move';
@@ -1432,6 +1434,7 @@ function setupDragDrop() {
     });
     card.addEventListener('drop', e => {
       e.preventDefault();
+      console.log('[drag] DROP on:', card.dataset.id, 'from:', dragSrcId);
       if (!dragSrcId || card.dataset.id===dragSrcId) return;
       card.classList.remove('drag-over');
 
