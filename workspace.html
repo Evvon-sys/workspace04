@@ -1179,11 +1179,15 @@ function syncDeleteProb(id) { sheetWrite({ action:'delete', type:'problem', id }
 function syncReorderRows() {
   if (!scriptUrl) return;
   setSyncDot('syncing');
-  // 只送未完成的 ID，按目前順序
   const activeIds = todos.filter(t=>t.status!=='完成').map(t=>t.id).join(',');
-  const img = new Image();
-  img.onload = img.onerror = () => { setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000); };
-  img.src = scriptUrl + '?' + new URLSearchParams({ action:'reorderRows', ids: activeIds }).toString();
+  // 用 fetch no-cors 避免 URL 長度限制
+  fetch(scriptUrl + '?' + new URLSearchParams({ action:'reorderRows', ids: activeIds }).toString(), {
+    method: 'GET', mode: 'no-cors', cache: 'no-store'
+  }).then(() => {
+    setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000);
+  }).catch(() => {
+    setSyncDot('ok'); setTimeout(() => setSyncDot(''), 2000);
+  });
 }
 
 // ═══════════════════════════════════════
