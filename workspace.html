@@ -1442,7 +1442,11 @@ function setupDragDrop() {
       // Reorder in todos array
       const srcIdx  = todos.findIndex(t=>t.id===dragSrcId);
       const destIdx = todos.findIndex(t=>t.id===card.dataset.id);
-      if (srcIdx<0||destIdx<0) return;
+      console.log('[drag] srcIdx:', srcIdx, 'destIdx:', destIdx, 'todos.length:', todos.length);
+      if (srcIdx<0||destIdx<0) {
+        console.log('[drag] ABORT: idx not found');
+        return;
+      }
       const [moved] = todos.splice(srcIdx,1);
       todos.splice(destIdx,0,moved);
 
@@ -1450,6 +1454,7 @@ function setupDragDrop() {
       todos.forEach((t,i)=>{ t.sortOrder=i; });
 
       // 送出新列順序讓 Sheet 實際移動列
+      console.log('[drag] calling syncReorderRows');
       syncReorderRows();
       render();
     });
